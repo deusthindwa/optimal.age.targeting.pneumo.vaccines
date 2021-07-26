@@ -1,6 +1,6 @@
 # estimate the rest of parameters using a simple linear model
-theta0 <- min(ipd$incidence,na.rm=TRUE)*0.5  
-model0 <- lm(log(incidence-theta0) ~ agey, data=ipd)  
+theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5  
+model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)  
 alpha0 <- exp(coef(model0)[1])
 beta0  <- coef(model0)[2]
 

@@ -2,18 +2,10 @@
 if (!require(pacman)){
   install.packages("pacman")
 }
-pacman::p_load(char = c("tidyverse", 
-                        "here",
-                        "scales", 
-                        "magrittr",
-                        "mvtnorm",
-                        "zoo",
-                        "patchwork"))
-
+pacman::p_load(char = c("tidyverse", "here", "scales", "magrittr",  "mvtnorm", "zoo", "patchwork"))
 
 options(stringsAsFactors = FALSE)
 setwd(here::here())
-
 
 source(here::here("script", "load_data.R"))
 
