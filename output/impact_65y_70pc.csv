@@ -1,0 +1,5 @@
+Waning,Age dep.,Impact
+Fast,FALSE,"3.0% (2.6%, 3.5%)"
+Fast,TRUE,"2.0% (1.7%, 2.3%)"
+Slow,FALSE,"2.7% (2.3%, 3.1%)"
+Slow,TRUE,"1.8% (1.6%, 2.1%)"
