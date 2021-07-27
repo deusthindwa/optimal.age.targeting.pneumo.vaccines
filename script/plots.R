@@ -4,15 +4,10 @@
 
 
 incidence_plot <-  
-  ggplot(data = ipd_curves, aes(x = agey, y = `50%`,
-                                color = serogroup,
-                                fill  = serogroup)) +
+  ggplot(data = ipd_curves, aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_line() +
-  geom_ribbon(aes(ymin = `2.5%`,
-                  ymax = `97.5%`),
-              alpha = 0.2,
-              color = NA,) +
-  #facet_wrap(~serogroup, nrow = 1) +
+  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
+  facet_wrap(~serogroup, nrow = 1) +
   ylim(c(0, NA)) + 
   theme_bw() +
   xlab("Age (years)") +
@@ -31,8 +26,7 @@ ggsave(here("output","incidence_plot.png"),
 
 #scaled incidence plot
 scaled_incidence_plot <-
-  ggplot(data = ipd_scaled,
-         aes(x = agey,
+  ggplot(data = ipd_scaled, aes(x = agey,
              y = p,
              color = serogroup)) + 
   geom_line() +

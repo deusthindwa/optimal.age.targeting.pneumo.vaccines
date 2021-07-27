@@ -1,3 +1,8 @@
+# written by Samuel Clifford & Deus Thindwa
+# optimal age targeting for pneumoccocal vaccines against IPD in older adults
+# exponential decay and growth models.
+# 1/08/2021-30/09/2021
+
 # load the require packages
 if (!require(pacman)){
   install.packages("pacman")
