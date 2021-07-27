@@ -1,3 +1,10 @@
+
+# load the IPD cases
+ipd <- readr::read_csv(here("data", "ipd_incid_EW.csv"))
+ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup,1,2)))
+Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
+
+
 # estimate the rest of parameters using a simple linear model
 theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5  
 model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)  

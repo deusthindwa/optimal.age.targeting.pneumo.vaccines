@@ -7,7 +7,9 @@ pacman::p_load(char = c("tidyverse", "here", "scales", "magrittr",  "mvtnorm", "
 options(stringsAsFactors = FALSE)
 setwd(here::here())
 
-source(here::here("script", "load_data.R"))
+
+# plot smoothed populations for all countries
+source(here::here("script", "pops.R"))
 
 
 # model incidences in each age group using 
