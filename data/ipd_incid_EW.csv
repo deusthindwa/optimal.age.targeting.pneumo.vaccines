@@ -1,0 +1,31 @@
+agegroup,serogroup,cases,incidence,country
+65-69,PCV13,86,3.42,Englad/Wales
+70-74,PCV13,91,4.21,Englad/Wales
+75-79,PCV13,107,6.1,Englad/Wales
+80-84,PCV13,94,7.25,Englad/Wales
+85+,PCV13,188,15.56,Englad/Wales
+65-69,PPV23,321,12.74,Englad/Wales
+70-74,PPV23,379,17.52,Englad/Wales
+75-79,PPV23,361,20.5,Englad/Wales
+80-84,PPV23,330,25.4,Englad/Wales
+85+,PPV23,526,43.55,Englad/Wales
+65-69,All serotypes,397,15.77,Englad/Wales
+70-74,All serotypes,483,22.33,Englad/Wales
+75-79,All serotypes,489,27.78,Englad/Wales
+80-84,All serotypes,471,36.23,Englad/Wales
+85+,All serotypes,786,65.11,Englad/Wales
+65-69,PCV13,86,2.42,Malawi
+70-74,PCV13,91,3.21,Malawi
+75-79,PCV13,107,5.1,Malawi
+80-84,PCV13,94,6.25,Malawi
+85+,PCV13,188,10.56,Malawi
+65-69,PPV23,321,7.74,Malawi
+70-74,PPV23,379,10.52,Malawi
+75-79,PPV23,361,19.5,Malawi
+80-84,PPV23,330,24.4,Malawi
+85+,PPV23,526,44.55,Malawi
+65-69,All serotypes,397,14.77,Malawi
+70-74,All serotypes,483,21.33,Malawi
+75-79,All serotypes,489,26.78,Malawi
+80-84,All serotypes,471,35.23,Malawi
+85+,All serotypes,786,64.11,Malawi
