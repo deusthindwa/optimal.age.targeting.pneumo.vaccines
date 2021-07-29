@@ -16,7 +16,7 @@ beta0  <- coef(model0)[2]
 
 # fit nonlinear (weighted) least-squares estimates of the parameters using Gauss-Newton algorithm
 # we parameterise in terms of log-rates to ensure the estimates are positive
-ipd_modelEW <- filter(ipd, country == "Englad/Wales") %>% 
+ipd_modelEW <- filter(ipd, country == "England/Wales") %>% 
     split(.$serogroup) %>%
     purrr::map(~nls(data = .x, 
                     incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
@@ -76,7 +76,7 @@ ipd_mcSA <- ipd_modelSA %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim =
 ipd_mcBR <- ipd_modelBR %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
 
 # summarise uncertainty
-ipd_curvesEW <- ipd_mcEW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Englad/Wales")
+ipd_curvesEW <- ipd_mcEW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "England/Wales")
 ipd_curvesMW <- ipd_mcMW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Malawi") 
 ipd_curvesSA <- ipd_mcSA %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "South Africa") 
 ipd_curvesBR <- ipd_mcBR %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Brazil") 
@@ -90,50 +90,34 @@ CasesMW <- dplyr::inner_join(bind_rows(ipd_mcMW, .id="serogroup"), countries_df,
 CasesSA <- dplyr::inner_join(bind_rows(ipd_mcSA, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
 CasesBR <- dplyr::inner_join(bind_rows(ipd_mcBR, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
 
-# plot backward or forward extrapolation incidence
-incidence_plot <-  
-  ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+# plot scaled incidence
+A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) + 
   geom_line() +
+  theme_bw() +
+  facet_grid(. ~ country) +
+  labs(x = "", y = "Observed incidence") +
+  ylim(c(0, NA)) +
+  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  scale_color_brewer(palette = "Dark2", guide = FALSE) +
+  theme(strip.text.x = element_text(size = 16)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# plot backward or forward extrapolation incidence
+B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+  geom_point(data = ipd, aes(y = incidence)) +
+  geom_line() +
+  theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   facet_grid(. ~ country) +
   ylim(c(0, NA)) + 
-  theme_bw() +
-  xlab("Age (years)") +
-  ylab("Incidence (cases per 100,000)") +
+  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  labs(x = "Age (years)", y = "Incident cases per 100,000") +
   theme(legend.position = "bottom") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
-  geom_point(data = ipd, aes(y = incidence))
+  theme(strip.background = element_blank(), strip.text.x = element_blank())
 
-ggsave(here("output","incidence_plot.png"),
-       plot = incidence_plot,
-       width = 7, height = 5, unit="in", dpi = 300)
-
-
-# plot scaled incidence plot
-scaled_incidence_plot <-
-  ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) + 
-  geom_line() +
-  theme_bw() +
-  xlab("Age (years)") +
-  ylab("Observed incidence") +
-  ylim(c(0, NA)) +
-  scale_color_brewer(palette = "Dark2", guide = FALSE)
-
-
-ggsave(here("output","scaled_plot.png"),
-       plot = scaled_incidence_plot,
-       width = 7, height = 5, unit="in", dpi = 300)
-
-
-incidence_plots <- 
-  scaled_incidence_plot +
-  incidence_plot +
-  patchwork::plot_layout(nrow = 1,
-                         guides = "collect") &
-  theme(legend.position='bottom')
-
-ggsave(here("output", "incidence_plots.png"),
-       plot = incidence_plots,
-       width = 7, height = 4, unit="in", dpi = 300)
-
+# combined incidence plot
+ggsave(here("output", "Fig2_ipd_incidence.png"),
+       plot = A/B,
+       width = 10, height = 5, unit="in", dpi = 300)

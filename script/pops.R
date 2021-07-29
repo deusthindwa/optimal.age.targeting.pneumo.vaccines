@@ -56,6 +56,6 @@ countries_plot <- ggplot(data = countries_df, aes(x = agey, y = p)) +
   scale_fill_manual(values=countries) +
   theme(axis.text=element_text(face="bold", size=10, color="black"), legend.position = "bottom")
 
-ggsave(filename = here("output","Fig1.countries_popn.png"), 
+ggsave(filename = here("output","Fig1_countries_popn.png"), 
        plot = countries_plot,
        width = 7, height = 3.5, units = "in", dpi = 300)
