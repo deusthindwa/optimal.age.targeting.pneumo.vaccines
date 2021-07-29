@@ -1,3 +1,7 @@
+# written by Samuel Clifford & Deus Thindwa
+# optimal age targeting for pneumoccocal vaccines against IPD in older adults
+# exponential decay and growth models.
+# 1/08/2021-30/09/2021
 
 #loaad datasets into memory
 pop.ew <- read_csv(here("data", "total_pop_EW.csv"))
