@@ -1,9 +1,10 @@
+# written by Samuel Clifford & Deus Thindwa
+# optimal age targeting for pneumoccocal vaccines against IPD in older adults
+# exponential decay and growth models.
+# 1/08/2021-30/09/2021
 
-VE_table <- tibble::add_row(VE_table, 
-                            Study       = "None", 
-                            rate        = 0, 
-                            `Half-life` = Inf)
-
+#add empty row in VE table
+VE_table <- tibble::add_row(VE_table, Study = "None", rate = 0, `Half-life` = Inf)
 
 # make a list check it twice
 initial_VE <- function(age, serogroup, age_dep = FALSE){
@@ -28,11 +29,9 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
 
 df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
 
-
 # probably just need to do the single Study
 # maybe just  double check that we're doing zero for 1,3 PCV
 # this whole thing could just be an expand.grid
-# 
 
 scenarios <- list(`1` = data.frame(Study.waning = "Andrews (2012)",
                                    Study.VE     = "Andrews (2012)"),

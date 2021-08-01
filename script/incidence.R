@@ -84,26 +84,20 @@ ipd_curvesBR <- ipd_mcBR %>% map_df(summarise_from_model, .id = "serogroup") %>%
 # calculate scaled incidence
 ipd_scaled <- ipd %>% dplyr::group_by(serogroup) %>% dplyr::mutate(p = incidence/sum(incidence))
 
-# generate IPD cases from total pop and IPD incidence annually
-CasesEW <- dplyr::inner_join(bind_rows(ipd_mcEW, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-CasesMW <- dplyr::inner_join(bind_rows(ipd_mcMW, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-CasesSA <- dplyr::inner_join(bind_rows(ipd_mcSA, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-CasesBR <- dplyr::inner_join(bind_rows(ipd_mcBR, .id="serogroup"), countries_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-
 # plot scaled incidence
-A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) + 
+ipd_A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) + 
   geom_line() +
   theme_bw() +
   facet_grid(. ~ country) +
   labs(x = "", y = "Observed incidence") +
   ylim(c(0, NA)) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  xlim(55, 90) +
   scale_color_brewer(palette = "Dark2", guide = FALSE) +
-  theme(strip.text.x = element_text(size = 16)) +
+  theme(strip.text.x = element_text(size = 14)) +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 # plot backward or forward extrapolation incidence
-B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+ipd_B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_point(data = ipd, aes(y = incidence)) +
   geom_line() +
   theme_bw() +
@@ -111,13 +105,13 @@ B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR)
   facet_grid(. ~ country) +
   ylim(c(0, NA)) + 
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  labs(x = "Age (years)", y = "Incident cases per 100,000") +
+  labs(x = "Age (years)", y = "Incident cases per \n100,000 population") +
   theme(legend.position = "bottom") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
   theme(strip.background = element_blank(), strip.text.x = element_blank())
 
 # combined incidence plot
-ggsave(here("output", "Fig2_ipd_incidence.png"),
-       plot = A/B,
+ggsave(here("output", "Fig1_ipd_incidence.png"),
+       plot = ipd_A/ipd_B,
        width = 10, height = 5, unit="in", dpi = 300)

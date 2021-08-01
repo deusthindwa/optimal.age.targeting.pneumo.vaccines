@@ -4,39 +4,39 @@
 # 1/08/2021-30/09/2021
 
 #loaad datasets into memory
-pop.ew <- read_csv(here("data", "total_pop_EW.csv"))
-pop.mw <- read_csv(here("data", "total_pop_MW.csv"))
-pop.sa <- read_csv(here("data", "total_pop_SA.csv"))
-pop.br <- read_csv(here("data", "total_pop_BR.csv"))
+pop_ew <- read_csv(here("data", "total_pop_EW.csv"))
+pop_mw <- read_csv(here("data", "total_pop_MW.csv"))
+pop_sa <- read_csv(here("data", "total_pop_SA.csv"))
+pop_br <- read_csv(here("data", "total_pop_BR.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
-countries <- c("England/Wales" = "red", "Malawi" = "black", "South Africa" = "orange", "Brazil" = "blue")
+pop_country <- c("England/Wales" = "red", "Malawi" = "black", "South Africa" = "orange", "Brazil" = "blue")
 
-pop.totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
+pop_totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
                    `Malawi`        = 18628747,
                    `South Africa`        = 18628747,
                    `Brazil`        = 18628747) %>%
-  map_df(.id = "Country", ~data.frame(N = .x))
+  map_df(.id = "country", ~data.frame(N = .x))
 
 #set smooth or unsmooth conditions
-use.pop.totals <- FALSE
-smooth.pops    <- TRUE
+pop_use_totals <- FALSE
+pop_smooth    <- TRUE
 
 #unsmoothed population values
-countries_df <- list(`England/Wales` = pop.ew,
-                     `Malawi`        = pop.mw,
-                     `South Africa`  = pop.mw,
-                     `Brazil`        = pop.mw) %>%
-  bind_rows(.id = "Country") %>%
-  group_by(Country) %>%
-  inner_join(pop.totals) %>%
-  mutate(p = ntotal/(use.pop.totals*N + (1-use.pop.totals)*sum(ntotal)))
+pop_country_df <- list(`England/Wales` = pop_ew,
+                     `Malawi`        = pop_mw,
+                     `South Africa`  = pop_mw,
+                     `Brazil`        = pop_mw) %>%
+  bind_rows(.id = "country") %>%
+  group_by(country) %>%
+  inner_join(pop_totals) %>%
+  mutate(p = ntotal/(pop_use_totals*N + (1-pop_use_totals)*sum(ntotal)))
 
 #smoothed population values
-if (smooth.pops){
+if (pop_smooth){
   
-  countries_df %<>%
-    split(.$Country) %>%
+  pop_country_df %<>%
+    split(.$country) %>%
     map(~mutate(.x, N_ = sum(ntotal),
                 ntotal = c(head(.x$ntotal, 2),
                            zoo::rollmean(.x$ntotal, 5),
@@ -46,16 +46,40 @@ if (smooth.pops){
   
 }
 
-#plot smoothed population values
-countries_plot <- ggplot(data = countries_df, aes(x = agey, y = p)) +
-  geom_col(aes(fill = Country), width = 0.8, position = position_dodge(width = 0.8)) +
+# generate IPD cases from total pop and IPD incidence annually
+#pop_casesEW <- dplyr::inner_join(bind_rows(ipd_mcEW, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
+#pop_casesMW <- dplyr::inner_join(bind_rows(ipd_mcMW, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
+#pop_casesSA <- dplyr::inner_join(bind_rows(ipd_mcSA, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
+#pop_casesBR <- dplyr::inner_join(bind_rows(ipd_mcBR, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
+
+pop_casesBR <- dplyr::left_join(ipd_curvesBR, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+pop_casesEW <- dplyr::left_join(ipd_curvesEW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+pop_casesMW <- dplyr::left_join(ipd_curvesMW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+pop_casesSA <- dplyr::left_join(ipd_curvesSA, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+
+#plot smoothed population values and absolute number of cases
+pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
+  geom_col(aes(fill = country), width = 0.8, position = position_dodge(width = 0.8)) +
   scale_x_continuous(breaks  = seq(55, 90, by = 5), labels  = function(x){gsub(pattern = "90", replacement = "90+", x = x)}) + 
   scale_y_continuous(labels  = scales::percent, limits = c(0, NA)) + 
   theme_bw() + 
-  labs(title="", x="Age in years (y)", y=paste0("Age as share of ", ifelse(use.pop.totals, "total national","55y+"), " population"), color = "Countries") +
-  scale_fill_manual(values=countries) +
-  theme(axis.text=element_text(face="bold", size=10, color="black"), legend.position = "bottom")
+  labs(title="", x="Age in years (y)", y=paste0("Share of ", ifelse(pop_use_totals, "total national","55y+"), " population"), color = "Countries") +
+  scale_fill_manual(values=pop_country) +
+  theme(axis.text=element_text(size=10, color="black"), legend.position = "right")
 
-ggsave(filename = here("output","Fig1_countries_popn.png"), 
-       plot = countries_plot,
-       width = 7, height = 3.5, units = "in", dpi = 300)
+pop_burden_plot <- ggplot(data = rbind(pop_casesBR, pop_casesEW, pop_casesMW, pop_casesSA), aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
+  geom_line() +
+  theme_bw() +
+  geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
+  facet_grid(. ~ country) +
+  coord_cartesian(ylim = c(0, 300)) +
+  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  labs(x = "Age (years)", y = "Absolute number of cases") +
+  theme(legend.position = "right") +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(strip.text.x = element_text(size = 14))
+  
+ggsave(filename = here("output","Fig2_popn_burden.png"), 
+       plot = pop_country_plot/pop_burden_plot,
+       width = 10, height = 5, units = "in", dpi = 300)
