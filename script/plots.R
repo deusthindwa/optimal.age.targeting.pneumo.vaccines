@@ -1,68 +1,52 @@
-
-impact_by_age_to_plot_ <-
-  impact_by_age_to_plot %>%
-  nest(data = c(sim, Impact)) %>%
-  mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q)
-
-#vaccine impact plot
-impact_by_age_plot <- 
-  ggplot(data = impact_by_age_to_plot_,
-         aes(x = Vac.age, y= `50%`,
-             color  = factor(age_dep),
-             group = interaction(Waning, age_dep, serogroup, delay,
-                                 Country))) +
-  geom_line() + 
-  geom_ribbon(aes(ymin = `2.5%`,
-                  ymax = `97.5%`,
-                  fill = factor(age_dep)),
-              color = NA,
-              alpha = 0.2) +
-  facet_grid(Country ~ serogroup + Waning,
-             scales = "free_y") +
-  theme_bw() +
-  scale_y_continuous(limits = c(0,NA)) +
-  xlab("Vaccination Age") +
-  ylab("Impact (expected total cases averted)") +
-  theme(legend.position = "bottom") +
-  scale_color_brewer(name = "Age dependent\nvaccine efficacy",
-                     palette = "Set1") + 
-  scale_fill_brewer(name = "Age dependent\nvaccine efficacy",
-                    palette = "Set1")
-
-ggsave(filename = "output/impact_by_vac_age.png", 
-       plot = impact_by_age_plot,
-       width = 7, height = 4, units = "in", dpi = 300)
+# written by Samuel Clifford & Deus Thindwa
+# optimal age targeting for pneumoccocal vaccines against IPD in older adults
+# exponential decay and growth models.
+# 1/08/2021-30/09/2021
 
 
-#impact per 10000 older adults vaccinated
-impact_validated_plot <- 
-  ggplot(data = impact_validated,
-         aes(x = Vac.age, y= `50%`,
-             color  = factor(age_dep),
-             group = interaction(Waning, age_dep, serogroup, delay,
-                                 Country))) +
-  geom_line() + 
-  geom_ribbon(aes(ymin = `2.5%`,
-                  ymax = `97.5%`,
-                  fill = factor(age_dep)),
-              color = NA,
-              alpha = 0.2) +
-  facet_grid(Country ~ serogroup + Waning,
-             scales = "free_y") +
-  theme_bw() +
-  scale_y_continuous(limits = c(0, NA)) +
-  xlab("Vaccination Age") +
-  ylab("Impact (cases averted per 10K older adults vaccinated)") +
-  theme(legend.position = "bottom") +
-  scale_color_brewer(name = "Age dependent\nvaccine efficacy",
-                     palette = "Set1") +
-  scale_fill_brewer(name = "Age dependent\nvaccine efficacy",
-                    palette = "Set1") +
-  theme(panel.grid.minor.y = element_blank())
+# compute maximum vaccine impact
+ VE_impact_max <- VE_impact_by_age %>%
+   dplyr::group_by_at(.vars = dplyr::vars(-c(Vac.age, Impact))) %>%
+   dplyr::filter(Impact == max(Impact))
+
+# 65y old programme impact (%) at 70% coverage
+coverage <- 0.7
+
+A65 <- impact_by_age_to_plot %>%
+  dplyr::filter(serogroup == "PPV23",
+                Country   == "England/Wales",
+                Vac.age >= 65) %>% 
+  dplyr::inner_join(
+    dplyr::select(Cases,
+                  serogroup,
+                  Vac.age, 
+                  Country, 
+                  sim,
+                  cases))
+
+impact_65y_70pc <-
+  dplyr::group_by(A65, Waning, sim) %>%
+  dplyr::mutate(value  = coverage*Impact/sum(cases),
+                Waning = sub(pattern     = "\\swaning", 
+                             replacement = "", 
+                             x           = Waning)) %>% 
+  dplyr::filter(Vac.age == 65) %>%
+  dplyr::select(-delay, -Impact, -cases) %>%
+  tidyr::nest(data = c(sim, value)) %>%
+  dplyr::mutate(Q = purrr::map(data, 
+                               ~quantile(.x$value,
+                                         probs = c(0.025, 0.5, 0.975)))) %>%
+  tidyr::unnest_wider(Q) %>%
+  dplyr::ungroup(.) %>%
+  dplyr::mutate_at(.vars =  dplyr::vars(contains("%")),
+                   .funs = ~scales::percent(., 0.1)) %>%
+  dplyr::select(Waning,
+                `Age dep.` = age_dep,
+                contains("%")) %>%
+  dplyr::group_by_at(.vars = dplyr::vars(-contains("%"))) %>%
+  dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`))
 
 
+readr::write_csv(x    = impact_65y_70pc, 
+                 path = here("output", "impact_65y_70pc.csv"))
 
-ggsave(filename = "output/impact_validated_by_vac_age.png", 
-       plot = impact_validated_plot,
-       width = 7, height = 4, units = "in", dpi = 300)

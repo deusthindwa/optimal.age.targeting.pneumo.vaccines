@@ -46,16 +46,11 @@ if (pop_smooth){
   
 }
 
-# generate IPD cases from total pop and IPD incidence annually
-#pop_casesEW <- dplyr::inner_join(bind_rows(ipd_mcEW, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-#pop_casesMW <- dplyr::inner_join(bind_rows(ipd_mcMW, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-#pop_casesSA <- dplyr::inner_join(bind_rows(ipd_mcSA, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-#pop_casesBR <- dplyr::inner_join(bind_rows(ipd_mcBR, .id="serogroup"), pop_country_df, by = "agey") %>% dplyr::filter(serogroup != "All serotypes") %>% dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-
 pop_casesBR <- dplyr::left_join(ipd_curvesBR, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
 pop_casesEW <- dplyr::left_join(ipd_curvesEW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
 pop_casesMW <- dplyr::left_join(ipd_curvesMW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
 pop_casesSA <- dplyr::left_join(ipd_curvesSA, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+pop_cases <- rbind(pop_casesBR, pop_casesEW, pop_casesMW, pop_casesSA)
 
 #plot smoothed population values and absolute number of cases
 pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
@@ -67,7 +62,7 @@ pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
   scale_fill_manual(values=pop_country) +
   theme(axis.text=element_text(size=10, color="black"), legend.position = "right")
 
-pop_burden_plot <- ggplot(data = rbind(pop_casesBR, pop_casesEW, pop_casesMW, pop_casesSA), aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
+pop_burden_plot <- ggplot(data = pop_cases, aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
   theme_bw() +
   geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
@@ -75,7 +70,7 @@ pop_burden_plot <- ggplot(data = rbind(pop_casesBR, pop_casesEW, pop_casesMW, po
   coord_cartesian(ylim = c(0, 300)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   labs(x = "Age (years)", y = "Absolute number of cases") +
-  theme(legend.position = "right") +
+  theme(axis.text=element_text(size=10, color="black"), legend.position = "right") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
   theme(strip.text.x = element_text(size = 14))
