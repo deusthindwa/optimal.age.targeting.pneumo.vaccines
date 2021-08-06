@@ -35,27 +35,27 @@ agegroup,serogroup,survyr,cases,incidence,country
 75-79,All serotypes,,,,Malawi
 80-84,All serotypes,,,,Malawi
 85+,All serotypes,,,,Malawi
-55-59,PCV13,,74,,South Africa
-60-64,PCV13,,50,,South Africa
-65-69,PCV13,,62,,South Africa
-70-74,PCV13,,34,,South Africa
-75-79,PCV13,,30,,South Africa
-80-84,PCV13,,28,,South Africa
-85+,PCV13,,16,,South Africa
-55-59,PPV23,,93,,South Africa
-60-64,PPV23,,62,,South Africa
-65-69,PPV23,,60,,South Africa
-70-74,PPV23,,41,,South Africa
-75-79,PPV23,,33,,South Africa
-80-84,PPV23,,34,,South Africa
-85+,PPV23,,26,,South Africa
-55-59,All serotypes,,167,,South Africa
-60-64,All serotypes,,112,,South Africa
-65-69,All serotypes,,122,,South Africa
-70-74,All serotypes,,75,,South Africa
-75-79,All serotypes,,63,,South Africa
-80-84,All serotypes,,62,,South Africa
-85+,All serotypes,,42,,South Africa
+55-59,PCV13,4,74,3.628973726,South Africa
+60-64,PCV13,4,50,3.02312814,South Africa
+65-69,PCV13,4,62,4.897650944,South Africa
+70-74,PCV13,4,34,3.866364787,South Africa
+75-79,PCV13,4,30,5.164782382,South Africa
+80-84,PCV13,4,28,8.670958791,South Africa
+85+,PCV13,4,16,7.523499179,South Africa
+55-59,PPV23,4,93,4.560737251,South Africa
+60-64,PPV23,4,62,3.748678893,South Africa
+65-69,PPV23,4,60,4.739662204,South Africa
+70-74,PPV23,4,41,4.662381067,South Africa
+75-79,PPV23,4,33,5.68126062,South Africa
+80-84,PPV23,4,34,10.52902139,South Africa
+85+,PPV23,4,26,12.22568617,South Africa
+55-59,All serotypes,4,167,8.189710977,South Africa
+60-64,All serotypes,4,112,6.771807033,South Africa
+65-69,All serotypes,4,122,9.637313149,South Africa
+70-74,All serotypes,4,75,8.528745854,South Africa
+75-79,All serotypes,4,63,10.846043,South Africa
+80-84,All serotypes,4,62,19.19998018,South Africa
+85+,All serotypes,4,42,19.74918535,South Africa
 55-59,PCV13,3,78,0.98,Brazil
 60-64,PCV13,3,72,1.15,Brazil
 65-69,PCV13,3,56,1.2,Brazil
