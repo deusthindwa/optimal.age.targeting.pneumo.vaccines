@@ -4,7 +4,7 @@
 # 1/08/2021-30/09/2021
 
 # load the IPD cases
-ipd <- readr::read_csv(here("data", "ipd_incid_all_countries.csv"))
+ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
 ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)))
 Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 
