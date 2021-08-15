@@ -9,26 +9,45 @@ ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)), ca
 Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 
 # estimate the rest of parameters using a simple linear model
-#theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5
-#model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)
-#alpha0 <- exp(coef(model0)[1])
-#beta0  <- coef(model0)[2]
+#log(y-theta0) = log(alpha0) + beta0*age
+theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5
+model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)
+alpha0 <- exp(coef(model0)[1])
+beta0  <- coef(model0)[2]
 
 # fit nonlinear (weighted) least-squares estimates of the parameters using Gauss-Newton algorithm
 # we parameterise in terms of log-rates to ensure the estimates are positive
+# y = alpha*exp(beta0*age) + theta0
+ipd_model <- ipd %>% 
+  split(list(.$serogroup, .$country)) %>%
+  purrr::map(~nls(data = .x, 
+                  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
+                  nls.control(maxiter = 2000),
+                  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0))))
 
+ipd_x <- data.frame(agey = seq(55, 90, by = 1))
+
+#-------------------------------------------------------
+
+#fit linear model to get initial parameters alpha0 and beta0 for Newton-type methods
+#log(y-theta0) = log(alpha0) + beta0*age
 EW <- filter(ipd, country == "England/Wales")
 theta0 <- min(EW$incidence, na.rm = TRUE)*0.5
 model0 <- lm(log(incidence-theta0) ~ agey, data = EW)
 alpha0 <- exp(coef(model0)[1])
 beta0  <- coef(model0)[2]
 
+# fit nonlinear (weighted) least-squares estimates of the parameters using Gauss-Newton algorithm
+# we parameterise in terms of log-rates to ensure the estimates are positive
+#y = alpha*exp(beta0*age) + theta0
 ipd_modelEW <- filter(ipd, country == "England/Wales") %>% 
     split(.$serogroup) %>%
     purrr::map(~nls(data = .x, 
                     incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
                     nls.control(maxiter = 2000),
                     start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0))))
+
+ipd_x <- data.frame(agey = seq(55, 90, by = 1))
 
 #-------------------------------------------------------
 
@@ -101,21 +120,37 @@ summarise_from_model <- function(x, probs = c(0.025, 0.5, 0.975)){
 }
 
 # run the simulations
-ipd_mcEW <- ipd_modelEW %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
-ipd_mcMW <- ipd_modelMW %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
-ipd_mcSA <- ipd_modelSA %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
-ipd_mcBR <- ipd_modelBR %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
+ipd_mc <- ipd_model %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
+#ipd_mcEW <- ipd_modelEW %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
+#ipd_mcMW <- ipd_modelMW %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
+#ipd_mcSA <- ipd_modelSA %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
+#ipd_mcBR <- ipd_modelBR %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = Nsims))
 
 # summarise uncertainty
-ipd_curvesEW <- ipd_mcEW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "England/Wales")
-ipd_curvesMW <- ipd_mcMW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Malawi") 
-ipd_curvesSA <- ipd_mcSA %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "South Africa") 
-ipd_curvesBR <- ipd_mcBR %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Brazil") 
+ipd_curves <- ipd_mc %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)))
+#ipd_curvesEW <- ipd_mcEW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "England/Wales")
+#ipd_curvesMW <- ipd_mcMW %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Malawi") 
+#ipd_curvesSA <- ipd_mcSA %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "South Africa") 
+#ipd_curvesBR <- ipd_mcBR %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)), country = "Brazil") 
 
 # calculate scaled incidence
 ipd_scaled <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence))
 
 # plot scaled incidence
+ipd_curves <- rbind(
+  filter(ipd_curves, serogroup == "All serotypes.Brazil" | serogroup == "PCV13.Brazil" | serogroup == "PPV23.Brazil") %>% 
+  mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Brazil"),
+
+  filter(ipd_curves, serogroup == "All serotypes.England/Wales" | serogroup == "PCV13.England/Wales" | serogroup == "PPV23.England/Wales") %>% 
+  mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England/Wales"),
+
+  filter(ipd_curves, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PPV23.Malawi") %>% 
+  mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
+
+  filter(ipd_curves, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PPV23.South Africa") %>% 
+  mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
+)
+
 ipd_A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) + 
   geom_line() +
   theme_bw() +
@@ -128,13 +163,13 @@ ipd_A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 # plot backward or forward extrapolation incidence
-ipd_B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+ipd_B <- ggplot(data = ipd_curves, aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_point(data = ipd, aes(y = incidence)) +
   geom_line() +
   theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   facet_grid(. ~ country) +
-  #ylim(c(0, NA)) + 
+  ylim(c(0, NA)) + 
   coord_cartesian(ylim = c(0, 50)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   labs(x = "Age (years)", y = "Incident cases per \n100,000 population") +
