@@ -13,25 +13,25 @@ options(stringsAsFactors = FALSE)
 setwd(here::here())
 
 
-# plot smoothed populations for all countries
-source(here::here("script", "pops.R"))
-
-
 # model incidences in each age group using 
-source(here::here("script", "incidence.R"))
+source(here::here("script", "1_incidence.R"))
+
+
+# plot smoothed populations for all countries
+source(here::here("script", "2_pops.R"))
 
 
 # estimate vaccine impact against all IPD serotypes
-source(here::here("script", "metacurve.R"))
+source(here::here("script", "3_metacurve.R"))
 
 
 # generate scenarios by serogroup, country, VE, age and waning
-source(here::here("script", "vaccination_scenarios.R"))
+source(here::here("script", "4_vaccination_scenarios.R"))
 
 
 # compute vaccine impact
-source(here::here("script", "vaccine_impact.R"))
+source(here::here("script", "5_vaccine_impact.R"))
 
 
 # make plots
-source(here::here("script", "plots.R"))
+source(here::here("script", "6_plots.R"))
