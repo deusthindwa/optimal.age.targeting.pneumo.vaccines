@@ -5,15 +5,15 @@
 
 #loaad datasets into memory
 pop_ew <- read_csv(here("data", "total_pop_EW.csv"))
-pop_mw <- read_csv(here("data", "total_pop_MW.csv"))
+#pop_mw <- read_csv(here("data", "total_pop_MW.csv"))
 pop_sa <- read_csv(here("data", "total_pop_SA.csv"))
 pop_br <- read_csv(here("data", "total_pop_BR.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
-pop_country <- c("England/Wales" = "red", "Malawi" = "black", "South Africa" = "orange", "Brazil" = "blue")
+pop_country <- c("England/Wales" = "red", "South Africa" = "orange", "Brazil" = "blue")
 
 pop_totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
-                   `Malawi`        = 17210000,
+                   #`Malawi`        = 17210000,
                    `South Africa`  = 56200000,
                    `Brazil`        = 206200000) %>%
   map_df(.id = "country", ~data.frame(N = .x))
@@ -24,7 +24,7 @@ pop_smooth    <- TRUE
 
 #unsmoothed population values
 pop_country_df <- list(`England/Wales` = pop_ew,
-                     `Malawi`        = pop_mw,
+                     #`Malawi`        = pop_mw,
                      `South Africa`  = pop_sa,
                      `Brazil`        = pop_br) %>%
   bind_rows(.id = "country") %>%

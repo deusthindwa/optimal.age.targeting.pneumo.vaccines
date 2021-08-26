@@ -4,8 +4,8 @@
 # 1/08/2021-30/09/2021
 
 # load the IPD cases
-ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
-ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)), cases = cases/survyr, survyr = NULL)
+ipd <- filter(readr::read_csv(here("data", "ipd_cases_incid.csv")), country != "Malawi")
+ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)), cases = cases/survyr, incidence = incidence/survyr, survyr = NULL)
 Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 
 # estimate the rest of parameters using a simple linear model
@@ -48,7 +48,7 @@ ipd_modelMW <- filter(ipd, country == "Malawi") %>%
 #-------------------------------------------------------
 
 SA <- filter(ipd, country == "South Africa")
-theta0 <- min(SA$incidence, na.rm = TRUE)*0.5
+theta0 <- min(SA$incidence, na.rm = TRUE)*0.99
 model0 <- lm(log(incidence-theta0) ~ agey, data = SA)
 alpha0 <- exp(coef(model0)[1])
 beta0  <- coef(model0)[2]
@@ -128,14 +128,14 @@ ipd_A <- ggplot(data = ipd_scaled, aes(x = agey, y = p, color = serogroup)) +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 # plot backward or forward extrapolation incidence
-ipd_B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesMW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+ipd_B <- ggplot(data = rbind(ipd_curvesEW, ipd_curvesSA, ipd_curvesBR), aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_point(data = ipd, aes(y = incidence)) +
   geom_line() +
   theme_bw() +
-  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
+  #geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   facet_grid(. ~ country) +
   #ylim(c(0, NA)) + 
-  coord_cartesian(ylim = c(0, 50)) +
+  coord_cartesian(ylim = c(0, 10)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   labs(x = "Age (years)", y = "Incident cases per \n100,000 population") +
   theme(legend.position = "bottom") +
