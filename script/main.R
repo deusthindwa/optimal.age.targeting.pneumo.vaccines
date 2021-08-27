@@ -4,7 +4,7 @@
 # 1/08/2021-30/09/2021
 
 # load the require packages
-if (!require(pacman)){
+if (!require(pacman)){ #load packages
   install.packages("pacman")
 }
 pacman::p_load(char = c("tidyverse", "here", "scales", "magrittr",  "mvtnorm", "zoo", "patchwork"))
