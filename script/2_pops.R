@@ -10,7 +10,10 @@ pop_sa <- read_csv(here("data", "total_pop_SA.csv"))
 pop_br <- read_csv(here("data", "total_pop_BR.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
-pop_country <- c("England/Wales" = "red", "South Africa" = "orange", "Brazil" = "blue")
+pop_country <- c("England/Wales" = "red", 
+                 #"Malawi" = "Black",
+                 "South Africa" = "orange", 
+                 "Brazil" = "blue")
 
 pop_totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
                    #`Malawi`        = 17210000,
@@ -46,11 +49,8 @@ if (pop_smooth){
   
 }
 
-pop_casesBR <- dplyr::left_join(ipd_curvesBR, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
-pop_casesEW <- dplyr::left_join(ipd_curvesEW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
-pop_casesMW <- dplyr::left_join(ipd_curvesMW, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
-pop_casesSA <- dplyr::left_join(ipd_curvesSA, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
-pop_cases <- rbind(pop_casesBR, pop_casesEW, pop_casesMW, pop_casesSA)
+pop_cases <- dplyr::left_join(ipd_curves, pop_country_df, by = c("agey", "country")) %>% dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey)
+
 
 #plot smoothed population values and absolute number of cases
 pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
@@ -67,7 +67,7 @@ pop_burden_plot <- ggplot(data = pop_cases, aes(x = agey, y = cases, color = ser
   theme_bw() +
   geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
   facet_grid(. ~ country) +
-  coord_cartesian(ylim = c(0, 300)) +
+  coord_cartesian(ylim = c(0, 100)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   labs(x = "Age (years)", y = "Absolute number of cases") +
   theme(axis.text=element_text(size=10, color="black"), legend.position = "right") +

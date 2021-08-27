@@ -51,7 +51,7 @@ ggsave(filename = "output/Fig4_vaccine_impact.png",
 VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
-  mutate(Impact = Impact*10000/ntotal) %>%
+  mutate(Impact = Impact*100000/ntotal) %>%
   nest(data = c(sim, Impact)) %>%
   mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q)
