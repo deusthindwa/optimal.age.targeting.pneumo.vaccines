@@ -4,11 +4,12 @@
 # 1/08/2021-30/09/2021
 
 # load the IPD cases
-ipd <- filter(readr::read_csv(here("data", "ipd_cases_incid.csv")), country != "Malawi")
+ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
+
 ipd <- dplyr::mutate(ipd, 
                      agey = readr::parse_number(substr(agegroup, 1, 2)), 
                      cases = cases/survyr, 
-                     #incidence = incidence/survyr, 
+                     incidence = incidence/survyr, 
                      survyr = NULL)
 Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 
@@ -98,10 +99,10 @@ ipd_B <- ggplot(data = ipd_curves, aes(x = agey, y = `50%`, color = serogroup, f
   theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   facet_grid(. ~ country) +
-  #ylim(c(0, NA)) + 
-  coord_cartesian(ylim = c(0, 40)) +
+  ylim(c(0, NA)) + 
+  #coord_cartesian(ylim = c(0, 40)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  labs(x = "Age (years)", y = "Incident cases per \n100,000 population") +
+  labs(x = "Age (years)", y = "Incident cases per 100,000 \npopulation per year") +
   theme(legend.position = "bottom") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +

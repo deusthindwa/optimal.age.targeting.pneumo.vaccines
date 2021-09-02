@@ -66,7 +66,7 @@ VE_B <- ggplot(VE_impact_validated, aes(x = Vac.age, y= `50%`, color = factor(ag
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   theme(axis.text=element_text(size=10, color="black")) +
   xlab("Vaccination Age") +
-  ylab("Impact (cases averted per 10,000 older adults vaccinated)") +
+  ylab("Impact (cases averted per 100,000 older adults vaccinated)") +
   theme(legend.position = "bottom") +
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
