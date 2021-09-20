@@ -6,29 +6,44 @@
 # load the IPD cases
 ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
 
-ipd <- dplyr::mutate(ipd, 
-                     agey = readr::parse_number(substr(agegroup, 1, 2)), 
-                     cases = cases/survyr, 
-                     incidence = incidence/survyr, 
-                     survyr = NULL)
+ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2))) 
+
 Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 
 # estimate the rest of parameters using a simple linear model
-#log(y-theta0) = log(alpha0) + beta0*age
-theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5
-model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)
-alpha0 <- exp(coef(model0)[1])
-beta0  <- coef(model0)[2]
+# log(y-theta0) = log(alpha0) + beta0*age
+#theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5
+#model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)
+#alpha0 <- exp(coef(model0)[1])
+#beta0  <- coef(model0)[2]
+
+fit_model <- function(x){
+  #set initial parameter values for the model
+  theta0 <- min(x$incidence, na.rm = TRUE)*0.5
+  model0 <- lm(log(incidence-theta0) ~ agey, data = x)
+  alpha0 <- exp(coef(model0)[1])
+  beta0  <- coef(model0)[2]
+  
+  #fit and NLS model
+  nls(data = x,
+  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
+  nls.control(maxiter = 2000),
+  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0)))
+}
+
+ipd_model <- ipd %>% 
+  split(list(.$serogroup, .$country)) %>%
+  purrr::map(~fit_model(.x))
 
 # fit nonlinear (weighted) least-squares estimates of the parameters using Gauss-Newton algorithm
 # we parameterise in terms of log-rates to ensure the estimates are positive
 # y = alpha*exp(beta0*age) + theta0
-ipd_model <- ipd %>% 
-  split(list(.$serogroup, .$country)) %>%
-  purrr::map(~nls(data = .x, 
-                  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
-                  nls.control(maxiter = 2000),
-                  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0))))
+#ipd_model <- ipd %>% 
+#  split(list(.$serogroup, .$country)) %>%
+#  purrr::map(~nls(data = .x, 
+#                  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
+#                  nls.control(maxiter = 2000),
+#                  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0))))
 
 #-------------------------------------------------------
 
