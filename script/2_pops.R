@@ -87,7 +87,7 @@ pop_burden_plot <- ggplot(data = pop_cases, aes(x = agey, y = cases, color = ser
   geom_line() +
   theme_bw() +
   #geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
-  facet_grid(. ~ country) +
+  facet_wrap(. ~ country, scales = "free_y") +
   ylim(c(0, NA)) +
   #coord_cartesian(ylim = c(0, 40)) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +

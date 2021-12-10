@@ -6,60 +6,46 @@
 # load the IPD cases
 ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
 
-<<<<<<< HEAD
 ipd <- dplyr::mutate(ipd, 
                      agey = readr::parse_number(substr(agegroup, 1, 2)), 
                      cases = cases/survyr, 
                      incidence = incidence/survyr, 
                      survyr = NULL)
   #filter(country == "England/Wales" & serogroup == "All serotypes")
-=======
+
 ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2))) 
 
-Nsims <- 1e3 # number of simulations to use for all uncertainty analysis
->>>>>>> 0988b488cf153873efc831385617e2ab8191dc4c
+#------------------------------------------------------- OPTION 1 WITH NLS
 
 # estimate the rest of parameters using a simple linear model
 # log(y-theta0) = log(alpha0) + beta0*age
-#theta0 <- min(ipd$incidence, na.rm = TRUE)*0.5
-#model0 <- lm(log(incidence-theta0) ~ agey, data = ipd)
-#alpha0 <- exp(coef(model0)[1])
-#beta0  <- coef(model0)[2]
-
-fit_model <- function(x){
+#fit_model <- function(x){
   #set initial parameter values for the model
-  theta0 <- min(x$incidence, na.rm = TRUE)*0.5
-  model0 <- lm(log(incidence-theta0) ~ agey, data = x)
-  alpha0 <- exp(coef(model0)[1])
-  beta0  <- coef(model0)[2]
+  #theta0 <- min(x$incidence, na.rm = TRUE)*0.5
+  #model0 <- lm(log(incidence-theta0) ~ agey, data = x)
+  #alpha0 <- exp(coef(model0)[1])
+  #beta0  <- coef(model0)[2]
   
   #fit and NLS model
-  nls(data = x,
-  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
-  nls.control(maxiter = 2000),
-  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0)))
-}
+  #nls(data = x,
+  #incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
+  #nls.control(maxiter = 2000),
+  #start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0)))
+#}
 
-ipd_model <- ipd %>% 
-  split(list(.$serogroup, .$country)) %>%
-  purrr::map(~fit_model(.x))
-
-# fit nonlinear (weighted) least-squares estimates of the parameters using Gauss-Newton algorithm
-# we parameterise in terms of log-rates to ensure the estimates are positive
-# y = alpha*exp(beta0*age) + theta0
 #ipd_model <- ipd %>% 
-#  split(list(.$serogroup, .$country)) %>%
-#  purrr::map(~nls(data = .x, 
-#                  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
-#                  nls.control(maxiter = 2000),
-#                  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0))))
+  #split(list(.$serogroup, .$country)) %>%
+  #purrr::map(~fit_model(.x))
 
-
-#-------------------------------------------------------
+#------------------------------------------------------- OPTION 2 WITH GAM
 
 #fit a GAM to the incidence data for interpolation- and extrapolation to yearly ages
 # y = f(x) + e
-fit_model <- function(x){ gam(incidence ~ te(agey, bs = "tp"), family = gaussian(link = "identity"), data = x)}
+fit_model <- function(x){ 
+  gam(incidence ~ te(agey, bs = "tp"), 
+      family = gaussian(link = "identity"), 
+      data = x)
+  }
 
 ipd_model <- ipd %>% 
   split(list(.$serogroup, .$country)) %>%
@@ -69,16 +55,14 @@ ipd_model <- ipd %>%
 
 # function to simulate model to generate uncertainty 
 simulate_from_model <- function(x, newdata, nsim){
-  V <- x$Vp
-  M <- x$coefficients
+  V <- vcov(x)
+  M <- coef(x)
   
   dat <- data.frame(rmvnorm(n = nsim, mean = M, sigma = V)) %>%
     mutate(sim = 1:n()) %>%
     crossing(newdata) %>%
-    mutate(fit = predict(x, .),
-           fitl = predict(x, .) - 2*predict(x, .),
-           fitu = predict(x, .) + 2*predict(x, .)) %>%
-    dplyr::select(fit, fitl, fitu, sim, one_of(names(newdata)))
+    mutate(fit = predict(x, .)) %>%
+    dplyr::select(fit, sim, one_of(names(newdata)))
   
   return(dat)
 }
@@ -105,6 +89,7 @@ summarise_from_model <- function(x, probs = c(0.025, 0.5, 0.975)){
 ipd_curves <- ipd_mc %>% map_df(summarise_from_model, .id = "serogroup") %>% mutate(serogroup = fct_inorder(factor(serogroup)))
 
 #-------------------------------------------------------
+
 # plot scaled incidence
 ipd_curves <- rbind(
   
