@@ -10,10 +10,10 @@ pop_sa <- read_csv(here("data", "total_pop_SA.csv"))
 pop_br <- read_csv(here("data", "total_pop_BR.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
-pop_country <- c("England/Wales" = "red", 
+pop_country <- c("Brazil" = "blue",
+                 "England/Wales" = "red", 
                  "Malawi" = "Black",
-                 "South Africa" = "orange", 
-                 "Brazil" = "blue")
+                 "South Africa" = "orange")
 
 pop_totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
                    `Malawi`        = 17210000,
@@ -53,50 +53,39 @@ pop_cases <- dplyr::left_join(ipd_curves, pop_country_df, by = c("agey", "countr
   dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey) %>% 
   filter(serogroup != "All serotypes") 
 
-#pop_cases <- dplyr::inner_join(bind_rows(ipd_mc, .id = "serogroup"), 
-#                               pop_country_df, by = c("agey")) %>% 
-#  dplyr::mutate(cases = fit/1e5*ntotal, Vac.age = agey)
-
-#pop_cases <- rbind(
-  
-#  filter(pop_cases, serogroup == "All serotypes.Brazil" | serogroup == "PCV13.Brazil" | serogroup == "PPV23.Brazil") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Brazil"),
-  
-#  filter(pop_cases, serogroup == "All serotypes.England/Wales" | serogroup == "PCV13.England/Wales" | serogroup == "PPV23.England/Wales") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England/Wales"),
-  
-# filter(pop_cases, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PPV23.Malawi") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
-  
-#  filter(pop_cases, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PPV23.South Africa") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
-#) %>% 
-#  dplyr::filter(serogroup != "All serotypes")
-
-#plot smoothed population values and absolute number of cases
+#plot smoothed population values
 pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
   geom_col(aes(fill = country), width = 0.8, position = position_dodge(width = 0.8)) +
   scale_x_continuous(breaks  = seq(55, 90, by = 5), labels  = function(x){gsub(pattern = "90", replacement = "90+", x = x)}) + 
   scale_y_continuous(labels  = scales::percent, limits = c(0, NA)) + 
   theme_bw() + 
-  labs(title="", x="Age in years (y)", y=paste0("Share of ", ifelse(pop_use_totals, "total national","55y+"), " population"), color = "Countries") +
-  scale_fill_manual(values=pop_country) +
-  theme(axis.text=element_text(size=10, color="black"), legend.position = "right")
+  theme(axis.text.x = element_text(face = "bold", size = 12), axis.text.y = element_text(face = "bold", size = 12)) +
+  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.01)) +
+  labs(title="A", x="Age in years (y)", y=paste0("Share of ", ifelse(pop_use_totals, "total national","55y+"), " population"), color = "Countries") +
+  scale_fill_manual(values = pop_country) +
+  theme(axis.text=element_text(size=10, color="black"), legend.position = "right") +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-pop_burden_plot <- ggplot(data = pop_cases, aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
+
+#plot absolute number of cases observed from each country
+pop_burden_plot <- pop_cases %>% mutate(countryx = if_else(country == "Brazil", "B, Brazil",
+                                                          if_else(country == "England/Wales", "C, England/Wales",
+                                                                  if_else(country == "Malawi", "D, Malawi", "E, South Africa")))) %>%
+  ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
   theme_bw() +
-  #geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
-  facet_wrap(. ~ country, scales = "free_y") +
-  ylim(c(0, NA)) +
-  #coord_cartesian(ylim = c(0, 40)) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  facet_wrap(countryx~., scales = "free_y", nrow = 1) + 
+  ylim(c(0, NA)) + 
+  scale_x_continuous(breaks = seq(55, 90, 5)) + 
   labs(x = "Age (years)", y = "Absolute number of cases") +
-  theme(axis.text=element_text(size=10, color="black"), legend.position = "right") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Dark2") +
-  theme(strip.text.x = element_text(size = 14))
+  theme(axis.text.x = element_text(face = "bold", size = 12), axis.text.y = element_text(face = "bold", size = 12)) +
+  theme(legend.position = "right") +
+  theme(strip.text.x = element_text(size = 16), strip.background=element_rect(fill="white")) +
+  scale_color_brewer(palette = "Dark2") + 
+  scale_fill_brewer(palette = "Dark2") + 
+  theme(strip.text.x = element_text(size = 14)) +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
   
 ggsave(filename = here("output","Fig2_popn_burden.png"), 
        plot = pop_country_plot/pop_burden_plot,
-       width = 10, height = 5, units = "in", dpi = 300)
+       width = 12, height = 6, units = "in", dpi = 300)

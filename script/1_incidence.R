@@ -11,7 +11,6 @@ ipd <- dplyr::mutate(ipd,
                      cases = cases/survyr, 
                      incidence = incidence/survyr, 
                      survyr = NULL)
-  #filter(country == "England/Wales" & serogroup == "All serotypes")
 
 ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2))) 
 
@@ -21,21 +20,21 @@ ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)))
 # log(y-theta0) = log(alpha0) + beta0*age
 #fit_model <- function(x){
   #set initial parameter values for the model
-  #theta0 <- min(x$incidence, na.rm = TRUE)*0.5
-  #model0 <- lm(log(incidence-theta0) ~ agey, data = x)
-  #alpha0 <- exp(coef(model0)[1])
-  #beta0  <- coef(model0)[2]
+#  theta0 <- min(x$incidence, na.rm = TRUE)*0.5
+#  model0 <- lm(log(incidence-theta0) ~ agey, data = x)
+#  alpha0 <- exp(coef(model0)[1])
+#  beta0  <- coef(model0)[2]
   
   #fit and NLS model
-  #nls(data = x,
-  #incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
-  #nls.control(maxiter = 2000),
-  #start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0)))
+#  nls(data = x,
+#  incidence ~ exp(log_alpha) * exp(beta*agey) + (theta),
+#  nls.control(maxiter = 2000),
+#  start = list(log_alpha = (alpha0), beta  = (beta0), theta = (theta0)))
 #}
 
 #ipd_model <- ipd %>% 
-  #split(list(.$serogroup, .$country)) %>%
-  #purrr::map(~fit_model(.x))
+#  split(list(.$serogroup, .$country)) %>%
+#  purrr::map(~fit_model(.x))
 
 #------------------------------------------------------- OPTION 2 WITH GAM
 
@@ -43,7 +42,7 @@ ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)))
 # y = f(x) + e
 fit_model <- function(x){ 
   gam(incidence ~ te(agey, bs = "tp"), 
-      family = gaussian(link = "identity"), 
+      family = gaussian(link = "identity"),
       data = x)
   }
 
