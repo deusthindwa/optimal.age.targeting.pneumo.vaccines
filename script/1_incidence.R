@@ -16,6 +16,81 @@ ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2)))
 
 #------------------------------------------------------- OPTION 1 WITH NLS
 
+A <- ipd %>% filter(country == "England/Wales" & serogroup == "PCV13") %>%
+ggplot(aes(x = agey, y = incidence)) +
+  geom_point() +
+  geom_smooth(method = "gam", formula = y ~ splines::ns(x, 2)) +
+  theme_bw()
+
+dataA <- as.tibble(ggplot_build(A)$data[[2]]) %>% 
+  mutate(country = "England/Wales", serogroup = "PCV13") %>%
+  select(serogroup, x, y, ymin, ymax, country) %>% 
+  rename("age" = x,  `50%` = y, `2.5%` = ymin, `97.5%` = ymax) %>% 
+  filter(row_number() %% 4 == 1) %>%
+  mutate("agey" = seq(65, 84)) %>%
+  select(serogroup, agey, `50%`, `2.5%`, `97.5%`, country)
+
+
+
+
+
+
+
+
+
+
+
+# define the model
+model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "PCV13"))
+dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
+d1 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
+
+model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "PPV23"))
+dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
+d2 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
+
+model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "All serotypes"))
+dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
+d3 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
+
+d1 %>% 
+  mutate("serogroup" = "PCV13", `2.5%` = fitl, `50%` = fit, `97.5%` = fitu, "country" = "England/Wales") %>%
+  select(serogroup, agey, `2.5%`, `50%`, `97.5%`, country) %>%
+  
+  ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+  geom_point(data = filter(ipd, country == "England/Wales"), aes(y = incidence), size = 4) +
+  geom_line(size = 0.5) +
+  theme_bw() +
+  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
+  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  scale_y_continuous(breaks = seq(0, 60, 10), position = "right") +
+  labs(title = "Incidence per 100,000 population per year", x = "Age (years)", subtitle = "B", y = "") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02)) + 
+  theme(plot.title = element_text(size = 20)) + 
+  theme(legend.position = "none") +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------- OPTION 1 WITH NLS
+
 # estimate the rest of parameters using a simple linear model
 # log(y-theta0) = log(alpha0) + beta0*age
 #fit_model <- function(x){
