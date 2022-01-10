@@ -1,19 +1,19 @@
 agegroup,serogroup,survyr,cases,incidence,country
-65-69,PCV13,2,78,3.1,England/Wales
-70-74,PCV13,2,81,3.76,England/Wales
-75-79,PCV13,2,94,5.35,England/Wales
-80-84,PCV13,2,80,6.15,England/Wales
-85+,PCV13,2,167,13.81,England/Wales
-65-69,PPV23,2,235,9.32,England/Wales
-70-74,PPV23,2,288,13.31,England/Wales
-75-79,PPV23,2,254,14.4,England/Wales
-80-84,PPV23,2,236,18.15,England/Wales
-85+,PPV23,2,338,27.99,England/Wales
-65-69,All serotypes,2,397,15.77,England/Wales
-70-74,All serotypes,2,483,22.33,England/Wales
-75-79,All serotypes,2,489,27.78,England/Wales
-80-84,All serotypes,2,471,36.23,England/Wales
-85+,All serotypes,2,786,65.11,England/Wales
+65-69,PCV13,2,78,3.1,England and Wales
+70-74,PCV13,2,81,3.76,England and Wales
+75-79,PCV13,2,94,5.35,England and Wales
+80-84,PCV13,2,80,6.15,England and Wales
+85+,PCV13,2,167,13.81,England and Wales
+65-69,PPV23,2,235,9.32,England and Wales
+70-74,PPV23,2,288,13.31,England and Wales
+75-79,PPV23,2,254,14.4,England and Wales
+80-84,PPV23,2,236,18.15,England and Wales
+85+,PPV23,2,338,27.99,England and Wales
+65-69,All serotypes,2,397,15.77,England and Wales
+70-74,All serotypes,2,483,22.33,England and Wales
+75-79,All serotypes,2,489,27.78,England and Wales
+80-84,All serotypes,2,471,36.23,England and Wales
+85+,All serotypes,2,786,65.11,England and Wales
 55-59,PCV13,2,74,3.628973726,Malawi
 60-64,PCV13,2,50,3.02312814,Malawi
 65-69,PCV13,2,62,4.897650944,Malawi

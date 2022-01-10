@@ -4,92 +4,18 @@
 # 1/08/2021-30/12/2021
 
 # load the IPD cases
-ipd <- readr::read_csv(here("data", "ipd_cases_incid.csv"))
+ipd <- readr::read_csv(here("data", "ipd_incid_all.csv")) 
+#%>% filter(country != "Malawi")
 
 ipd <- dplyr::mutate(ipd, 
                      agey = readr::parse_number(substr(agegroup, 1, 2)), 
-                     cases = cases/survyr, 
-                     incidence = incidence/survyr, 
-                     survyr = NULL)
+                     cases = cases, 
+                     incidence = incidence, 
+                     survyr = NULL) 
 
 ipd <- dplyr::mutate(ipd, agey = readr::parse_number(substr(agegroup, 1, 2))) 
 
-#------------------------------------------------------- OPTION 1 WITH NLS
-
-A <- ipd %>% filter(country == "England/Wales" & serogroup == "PCV13") %>%
-ggplot(aes(x = agey, y = incidence)) +
-  geom_point() +
-  geom_smooth(method = "gam", formula = y ~ splines::ns(x, 2)) +
-  theme_bw()
-
-dataA <- as.tibble(ggplot_build(A)$data[[2]]) %>% 
-  mutate(country = "England/Wales", serogroup = "PCV13") %>%
-  select(serogroup, x, y, ymin, ymax, country) %>% 
-  rename("age" = x,  `50%` = y, `2.5%` = ymin, `97.5%` = ymax) %>% 
-  filter(row_number() %% 4 == 1) %>%
-  mutate("agey" = seq(65, 84)) %>%
-  select(serogroup, agey, `50%`, `2.5%`, `97.5%`, country)
-
-
-
-
-
-
-
-
-
-
-
-# define the model
-model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "PCV13"))
-dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
-d1 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
-
-model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "PPV23"))
-dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
-d2 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
-
-model <- gam(incidence ~ te(agey, bs = "ps"), family = gaussian(link = "identity"), data = filter(ipd, country == "England/Wales" & serogroup == "All serotypes"))
-dg <- as.data.frame(predict.gam(model, newdata = ipd_x, se = TRUE)) %>% mutate(se.fit = se.fit*0.1)
-d3 <- data.frame(cbind(agey = ipd_x$agey, fit = dg$fit, fitl = dg$fit - 2 * dg$se.fit), fitu = dg$fit + 2 * dg$se.fit)
-
-d1 %>% 
-  mutate("serogroup" = "PCV13", `2.5%` = fitl, `50%` = fit, `97.5%` = fitu, "country" = "England/Wales") %>%
-  select(serogroup, agey, `2.5%`, `50%`, `97.5%`, country) %>%
-  
-  ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
-  geom_point(data = filter(ipd, country == "England/Wales"), aes(y = incidence), size = 4) +
-  geom_line(size = 0.5) +
-  theme_bw() +
-  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_y_continuous(breaks = seq(0, 60, 10), position = "right") +
-  labs(title = "Incidence per 100,000 population per year", x = "Age (years)", subtitle = "B", y = "") +
-  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02)) + 
-  theme(plot.title = element_text(size = 20)) + 
-  theme(legend.position = "none") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Dark2") +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-  
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-#------------------------------------------------------- OPTION 1 WITH NLS
+#------------------------------------------------------- OPTION 1 WITH NLS (but fits badly for South Africa)
 
 # estimate the rest of parameters using a simple linear model
 # log(y-theta0) = log(alpha0) + beta0*age
@@ -170,8 +96,8 @@ ipd_curves <- rbind(
   filter(ipd_curves, serogroup == "All serotypes.Brazil" | serogroup == "PCV13.Brazil" | serogroup == "PPV23.Brazil") %>% 
     mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Brazil"),
   
-  filter(ipd_curves, serogroup == "All serotypes.England/Wales" | serogroup == "PCV13.England/Wales" | serogroup == "PPV23.England/Wales") %>% 
-    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England/Wales"),
+  filter(ipd_curves, serogroup == "All serotypes.England and Wales" | serogroup == "PCV13.England and Wales" | serogroup == "PPV23.England and Wales") %>% 
+    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England and Wales"),
   
   filter(ipd_curves, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PPV23.Malawi") %>% 
     mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
@@ -187,136 +113,148 @@ ipd_scaled <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = 
 
 #============================================================================
 
-A <- filter(ipd_scaled, country == "England/Wales") %>% 
+A <- filter(ipd_scaled, country == "Brazil") %>% 
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
   theme_bw() +
-  labs(title = "Scaled Incidence", subtitle = "A, England/Wales", x = "", y = "") +
-  ylim(c(0, NA)) +
-  xlim(55, 90) +
+  labs(title = "Brazil", subtitle = "A", x = "", y = "Scaled Incidence") +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
   scale_color_brewer(palette = "Dark2") +
   theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
   theme(plot.title = element_text(size = 20)) +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(legend.position = c(0.2, 0.6))
+  theme(legend.position = c(0.3, 0.8), legend.text=element_text(size=12), legend.title = element_text(size = 16))
+
 
 # plot backward or forward extrapolation incidence
-B <- filter(ipd_curves, country == "England/Wales") %>% 
-  ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
-  geom_point(data = filter(ipd, country == "England/Wales"), aes(y = incidence), size = 4) +
-  geom_line(size = 1) +
-  theme_bw() +
-  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_y_continuous(breaks = seq(0, 60, 10), position = "right") +
-  labs(title = "Incidence per 100,000 population per year", x = "Age (years)", subtitle = "B", y = "") +
-  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02)) + 
-  theme(plot.title = element_text(size = 20)) + 
-  theme(legend.position = "none") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Dark2") +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-#============================================================================
-
-C <- filter(ipd_scaled, country == "Brazil") %>% 
-  ggplot() + 
-  geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
-  theme_bw() +
-  labs(title = "C, Brazil", x = "", y = "") +
-  ylim(c(0, NA)) +
-  xlim(55, 90) +
-  scale_color_brewer(palette = "Dark2", guide = "none") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-# plot backward or forward extrapolation incidence
-D <- filter(ipd_curves, country == "Brazil") %>% 
+B <- filter(ipd_curves, country == "Brazil") %>% 
   ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_point(data = filter(ipd, country == "Brazil"), aes(y = incidence), size = 4) +
   geom_line(size = 1) +
   theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_y_continuous(breaks = seq(0, 2.5, 0.5), position = "right") +
-  labs(title = "D", x = "Age (years)", y = "") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  labs(title = "", subtitle = "B", x = "Age (years)", y = "Incidence per 100,000 population") +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
   theme(legend.position = "none") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
 #============================================================================
 
-E <- filter(ipd_scaled, country == "South Africa") %>% 
+C <- filter(ipd_scaled, country == "England and Wales") %>% 
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
   theme_bw() +
-  labs(title = "E, South Africa", x = "", y = "") +
-  ylim(c(0, NA)) +
-  xlim(55, 90) +
-  scale_color_brewer(palette = "Dark2", guide = "none") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  labs(title = "England and Wales", subtitle = "C", x = "", y = "") +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
+  scale_color_brewer(palette = "Dark2") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.title = element_text(size = 20)) +
+  theme(legend.position = "none") +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) 
 
 # plot backward or forward extrapolation incidence
-F <- filter(ipd_curves, country == "South Africa") %>% 
+D <- filter(ipd_curves, country == "England and Wales") %>% 
   ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
-  geom_point(data = filter(ipd, country == "South Africa"), aes(y = incidence), size = 4) +
+  geom_point(data = filter(ipd, country == "England and Wales"), aes(y = incidence), size = 4) +
   geom_line(size = 1) +
   theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_y_continuous(breaks = seq(0, 6.5, 1), position = "right") +
-  labs(title = "F", x = "Age (years)", y = "") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.1)) +
+  labs(title = "", x = "Age (years)", subtitle = "D", y = "") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) + 
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
+  theme(plot.title = element_text(size = 20)) + 
   theme(legend.position = "none") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
 #============================================================================
 
-G <- filter(ipd_scaled, country == "Malawi") %>% 
+E <- filter(ipd_scaled, country == "Malawi") %>% 
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
   theme_bw() +
-  labs(title = "G, Malawi", x = "Age (years)", y = "") +
-  ylim(c(0, NA)) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_color_brewer(palette = "Dark2", guide = "none") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+  labs(title = "Malawi", subtitle = "E", x = "", y = "") +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
+  scale_color_brewer(palette = "Dark2") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.title = element_text(size = 20)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
+  theme(legend.position = "none")
 
 # plot backward or forward extrapolation incidence
-H <- filter(ipd_curves, country == "Malawi") %>% 
+F <- filter(ipd_curves, country == "Malawi") %>% 
   ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
   geom_point(data = filter(ipd, country == "Malawi"), aes(y = incidence), size = 4) +
   geom_line(size = 1) +
   theme_bw() +
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  scale_y_continuous(breaks = seq(0, 14, 2), position = "right") +
-  labs(title = "H", x = "Age (years)", y = "") +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.1)) +
+  labs(title = "", subtitle = "F", x = "Age (years)", y = "") +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
   theme(legend.position = "none") +
   scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
-  #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
+#============================================================================
+
+G <- filter(ipd_scaled, country == "South Africa") %>% 
+  ggplot() + 
+  geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
+  theme_bw() +
+  labs(title = "South Africa", subtitle = "G", x = "", y = "") +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
+  scale_color_brewer(palette = "Dark2") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.title = element_text(size = 20)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
+  theme(legend.position = "none")
+
+# plot backward or forward extrapolation incidence
+H <- filter(ipd_curves, country == "South Africa") %>% 
+  ggplot(aes(x = agey, y = `50%`, color = serogroup, fill  = serogroup)) +
+  geom_point(data = filter(ipd, country == "South Africa"), aes(y = incidence), size = 4) +
+  geom_line(size = 1) +
+  theme_bw() +
+  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
+  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  labs(title = "", subtitle = "H", x = "Age (years)", y = "") +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
+  theme(legend.position = "none") +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+#============================================================================
 
 # combined incidence plot
-ggsave(here("output", "Fig1_ipd_incidence.png"),
-       plot = ((A | B)/(C | D)/(E | F)/(G | H)),
-       width = 12, height = 16, unit="in", dpi = 300)
+ggsave(here("output", "Fig2_ipd_incidence.png"),
+       plot = ((A | C | E | G)/(B | D | F | H)),
+       width = 17, height = 10, unit="in", dpi = 300)
 

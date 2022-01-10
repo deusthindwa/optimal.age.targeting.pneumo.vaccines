@@ -11,11 +11,11 @@ pop_br <- read_csv(here("data", "total_pop_BR.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
 pop_country <- c("Brazil" = "blue",
-                 "England/Wales" = "red", 
+                 "England and Wales" = "red", 
                  "Malawi" = "Black",
                  "South Africa" = "orange")
 
-pop_totals <- list(`England/Wales` = 56286961 + 3152879, # mid-2019
+pop_totals <- list(`England and Wales` = 56286961 + 3152879, # mid-2019
                    `Malawi`        = 17210000,
                    `South Africa`  = 56200000,
                    `Brazil`        = 206200000) %>%
@@ -26,7 +26,7 @@ pop_use_totals <- FALSE
 pop_smooth    <- TRUE
 
 #unsmoothed population values
-pop_country_df <- list(`England/Wales` = pop_ew,
+pop_country_df <- list(`England and Wales` = pop_ew,
                        `Malawi`        = pop_mw,
                        `South Africa`  = pop_sa,
                        `Brazil`        = pop_br) %>%
@@ -69,14 +69,14 @@ pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
 
 #plot absolute number of cases observed from each country
 pop_burden_plot <- pop_cases %>% mutate(countryx = if_else(country == "Brazil", "B, Brazil",
-                                                          if_else(country == "England/Wales", "C, England/Wales",
+                                                          if_else(country == "England and Wales", "C, England and Wales",
                                                                   if_else(country == "Malawi", "D, Malawi", "E, South Africa")))) %>%
   ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
   theme_bw() +
   facet_wrap(countryx~., scales = "free_y", nrow = 1) + 
   ylim(c(0, NA)) + 
-  scale_x_continuous(breaks = seq(55, 90, 5)) + 
+  scale_x_continuous(breaks = seq(55, 85, 5), limits = c(55, 85)) + 
   labs(x = "Age (years)", y = "Absolute number of cases") +
   theme(axis.text.x = element_text(face = "bold", size = 12), axis.text.y = element_text(face = "bold", size = 12)) +
   theme(legend.position = "right") +
@@ -86,6 +86,6 @@ pop_burden_plot <- pop_cases %>% mutate(countryx = if_else(country == "Brazil", 
   theme(strip.text.x = element_text(size = 14)) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
   
-ggsave(filename = here("output","Fig2_popn_burden.png"), 
+ggsave(filename = here("output","Fig1_popn_burden.png"), 
        plot = pop_country_plot/pop_burden_plot,
        width = 12, height = 6, units = "in", dpi = 300)

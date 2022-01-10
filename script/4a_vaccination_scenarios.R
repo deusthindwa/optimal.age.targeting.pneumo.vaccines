@@ -30,13 +30,13 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
 df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
 
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
-scenarios <- list(`1` = data.frame(Study.waning = "Andrews (2012)",
-                                   Study.VE     = "Andrews (2012)"),
-                  `2` = data.frame(Study.waning = "Djennad (2018)",
-                                   Study.VE     = "Djennad (2018)"),
-                  `3` = data.frame(Study.waning = "Andrews (2012)",
+scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
+                                   Study.VE     = "Andrews et al. (2012)"),
+                  `2` = data.frame(Study.waning = "Djennad et al. (2018)",
+                                   Study.VE     = "Djennad et al. (2018)"),
+                  `3` = data.frame(Study.waning = "Andrews et al. (2012)",
                                    Study.VE     = NA),
-                  `4` = data.frame(Study.waning = "Djennad (2018)",
+                  `4` = data.frame(Study.waning = "Djennad et al. (2018)",
                                    Study.VE     = NA)) %>%
     dplyr::bind_rows(.id = "scenario") %>%
     dplyr::mutate(age_dep = scenario >= 3) %>%
@@ -44,33 +44,33 @@ scenarios <- list(`1` = data.frame(Study.waning = "Andrews (2012)",
 
 # summarise scenarios by VE, serogroup, age dependency, delay, and efficacy waning
 scenarios <- expand.grid(
-    data.frame(initial = c("Andrews (2012)", "Djennad (2018)"),
+    data.frame(initial = c("Andrews et al. (2012)", "Djennad et al. (2018)"),
                serogroup = c("PCV13", "PPV23"),
                age_dep = c(TRUE, FALSE)),
     stringsAsFactors = FALSE) %>% 
   
   arrange(serogroup, age_dep) %>% 
   mutate(waning = case_when(
-        initial == "Andrews (2012)" ~ "Fast",
-        serogroup == "PCV13" & initial == "Djennad (2018)" ~ "None",
-        serogroup == "PPV23" & initial == "Djennad (2018)" ~ "Slow",
+        initial == "Andrews et al. (2012)" ~ "Fast",
+        serogroup == "PCV13" & initial == "Djennad et al. (2018)" ~ "None",
+        serogroup == "PPV23" & initial == "Djennad et al. (2018)" ~ "Slow",
         TRUE ~ "Unknown")) %>%
   
   mutate(delay = ifelse(serogroup == "PCV13" & waning == "Fast", 5, 0),
-         initial = ifelse(serogroup == "PCV13", "Andrews (2012)", initial)) %>%
+         initial = ifelse(serogroup == "PCV13", "Andrews et al. (2012)", initial)) %>%
   
   rename(Study.VE = initial) %>%
   mutate(Study.waning = case_when(
-    waning == "Fast" ~ "Andrews (2012)",
-    waning == "Slow" ~ "Djennad (2018)", 
+    waning == "Fast" ~ "Andrews et al. (2012)",
+    waning == "Slow" ~ "Djennad et al. (2018)", 
     waning == "None" ~ "None",
     TRUE ~ NA_character_)) %>%
   
     select(-waning)
     
 # simulate scenarios for each VE value
-scenarios %<>%
-    crossing(sim = 1:Nsims, Vac.age = seq(55, 85, by = 5)) %>%
+scenariosp <- scenarios %<>%
+    crossing(sim = 1:nsims, Vac.age = seq(55, 85, by = 5)) %>%
     dplyr::left_join(
         dplyr::select(df_from_study_,
                       Study.waning = Study,
@@ -100,3 +100,4 @@ VE_by_Vac.age <-
     dplyr::mutate(Vaccine_Efficacy = VE*exp(rate*(1 + agey_since))) %>%
     dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
     dplyr::mutate(Impact = value*cases) 
+

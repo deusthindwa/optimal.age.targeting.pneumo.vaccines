@@ -18,8 +18,8 @@ VE_impact_by_age <- VE_by_Vac.age %>%
   
   dplyr::mutate(Waning = dplyr::case_when(
         Study.waning == "None"           ~ "No waning",
-        Study.waning == "Andrews (2012)" ~ "Fast waning",
-        Study.waning == "Djennad (2018)" ~ "Slow waning"),
+        Study.waning == "Andrews et al. (2012)" ~ "Fast waning",
+        Study.waning == "Djennad et al. (2018)" ~ "Slow waning"),
         Waning = ifelse(delay > 0, paste(Waning, sprintf("\n(%i years' delay)", delay)), Waning)) 
 
 # add uncertainty to VE impact
@@ -43,9 +43,11 @@ VE_A <- ggplot(VE_impact_by_age_, aes(x = Vac.age, y = `50%`, color = factor(age
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
 
-ggsave(filename = "output/Fig4_vaccine_impact.png", 
+ggsave(filename = "output/Fig3_vaccine_impact.png", 
        plot = VE_A,
        width = 10, height = 7, units = "in", dpi = 300)
+
+#===============================================================================================
 
 # vaccine impact per 10000 older adults
 VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
@@ -72,6 +74,7 @@ VE_B <- ggplot(VE_impact_validated, aes(x = Vac.age, y= `50%`, color = factor(ag
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
   theme(panel.grid.minor.y = element_blank())
 
-ggsave(filename = "output/Fig5_vaccine_impact_herd.png", 
+ggsave(filename = "output/Fig4_vaccine_impact_herd.png", 
        plot = VE_B,
        width = 10, height = 7, units = "in", dpi = 300)
+
