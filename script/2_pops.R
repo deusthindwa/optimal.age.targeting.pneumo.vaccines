@@ -4,10 +4,10 @@
 # 1/08/2021-30/09/2021
 
 #loaad datasets into memory
-pop_ew <- read_csv(here("data", "total_pop_EW.csv"))
-pop_mw <- read_csv(here("data", "total_pop_MW.csv"))
-pop_sa <- read_csv(here("data", "total_pop_SA.csv"))
-pop_br <- read_csv(here("data", "total_pop_BR.csv"))
+pop_ew <- read_csv(here("data", "total_pop_ew.csv"))
+pop_mw <- read_csv(here("data", "total_pop_mw.csv"))
+pop_sa <- read_csv(here("data", "total_pop_sa.csv"))
+pop_br <- read_csv(here("data", "total_pop_br.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
 pop_country <- c("Brazil" = "blue",

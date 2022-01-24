@@ -7,7 +7,7 @@
 if (!require(pacman)){ #load packages
   install.packages("pacman")
 }
-pacman::p_load(char = c("tidyverse", "here","readstata13", "scales", "boot", "magrittr",  "mvtnorm", "zoo", "patchwork", "mgcv"))
+pacman::p_load(char = c("tidyverse", "here","readstata13", "scales", "boot", "magrittr",  "mvtnorm", "zoo", "patchwork", "mgcv", "PropCIs"))
 
 options(stringsAsFactors = FALSE)
 setwd(here::here())
