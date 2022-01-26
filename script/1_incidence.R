@@ -10,7 +10,7 @@ ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
          obs = (cases/npop)*scale,
          obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:70])*scale,
          obs_uci = (exactci(cases, npop, 0.95)$conf.int[71:140])*scale) %>%
-  filter(country == "South Africa")
+  filter(country == "England")
   #filter(serogroup == "All serotypes") 
 
 #------------------------------------------------------- OPTION 1 WITH NLS (but fits badly for South Africa)
