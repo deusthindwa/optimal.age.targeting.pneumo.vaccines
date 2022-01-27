@@ -4,21 +4,21 @@
 # 1/08/2021-30/09/2021
 
 #loaad datasets into memory
-pop_ew <- read_csv(here("data", "total_pop_ew.csv"))
+pop_en <- read_csv(here("data", "total_pop_en.csv"))
 pop_mw <- read_csv(here("data", "total_pop_mw.csv"))
 pop_sa <- read_csv(here("data", "total_pop_sa.csv"))
 pop_br <- read_csv(here("data", "total_pop_br.csv"))
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
 pop_country <- c("Brazil" = "blue",
-                 "England and Wales" = "red", 
+                 "England" = "red", 
                  "Malawi" = "Black",
                  "South Africa" = "orange")
 
-pop_totals <- list(`England and Wales` = 56286961 + 3152879, # mid-2019
-                   `Malawi`        = 17210000,
-                   `South Africa`  = 56200000,
-                   `Brazil`        = 206200000) %>%
+pop_totals <- list(`England` = 56286961, # mid-2019 in 
+                   `Malawi`        = 66589, # mid-2018 pop in Blantyre
+                   `South Africa`  = 6907974, # mid-2016
+                   `Brazil`        = 27734412) %>% # projected from 2011 to 2016
   map_df(.id = "country", ~data.frame(N = .x))
 
 #set smooth or unsmooth conditions
@@ -26,7 +26,7 @@ pop_use_totals <- FALSE
 pop_smooth    <- TRUE
 
 #unsmoothed population values
-pop_country_df <- list(`England and Wales` = pop_ew,
+pop_country_df <- list(`England` = pop_en,
                        `Malawi`        = pop_mw,
                        `South Africa`  = pop_sa,
                        `Brazil`        = pop_br) %>%
@@ -69,7 +69,7 @@ pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
 
 #plot absolute number of cases observed from each country
 pop_burden_plot <- pop_cases %>% mutate(countryx = if_else(country == "Brazil", "B, Brazil",
-                                                          if_else(country == "England and Wales", "C, England and Wales",
+                                                          if_else(country == "England", "C, England",
                                                                   if_else(country == "Malawi", "D, Malawi", "E, South Africa")))) %>%
   ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
