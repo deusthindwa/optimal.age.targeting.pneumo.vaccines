@@ -4,12 +4,14 @@
 # 1/08/2021-30/12/2021
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
+scaling = 100000
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
-  filter(country == "England" | country == "South Africa" | country == "Brazil") %>%
+  filter(country == "England" | country == "South Africa" | country == "Brazil" | country == "Malawi") %>%
+  #filter(country == "Malawi") %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
-         obs = (cases/npop)*scale,
-         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:84])*scale,
-         obs_uci = (exactci(cases, npop, 0.95)$conf.int[85:168])*scale) 
+         obs = (cases/npop)*scaling,
+         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:112])*scaling,
+         obs_uci = (exactci(cases, npop, 0.95)$conf.int[113:224])*scaling) 
 
 #---------- FIT USING NLS
 
@@ -18,7 +20,6 @@ ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
 fit_model <- function(x){
   
   #set initial parameter values for the model
-  theta0 <- min(x$incidence, na.rm = TRUE)*0.05
   model0 <- lm(log(incidence) ~ agey, data = x)
   start = list(alpha = exp(coef(model0)[1]), beta  = coef(model0)[2])
   
@@ -91,27 +92,8 @@ ipd_curves <- rbind(
 
 #============================================================================
 
-# calculate and plot scaled incidence
-ipd_scaled <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence))
-
-A <- filter(ipd_scaled, country == "South Africa") %>% 
-  ggplot() + 
-  geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
-  theme_bw() +
-  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled Incidence") +
-  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
-  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
-  scale_color_brewer(palette = "Dark2") +
-  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
-  theme(plot.title = element_text(size = 20)) +
-  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
-  #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(legend.position = "none", legend.text=element_text(size=12), legend.title = element_text(size = 16))
-
 # plot fitted IPD incidence along with observed IPD cases with uncertainty
-B <- ggplot() +
+A <- ggplot() +
   geom_line(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
   geom_ribbon(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), fill = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
   geom_point(data = filter(ipd), aes(x = agey, y = obs, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), size = cases), shape = 1, stroke = 1.5, position = position_dodge(width = 1)) +
@@ -131,6 +113,32 @@ B <- ggplot() +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
 # combined incidence plot
+ggsave(here("output", "Fig2_ipd_incidence.png"),
+       plot = A,
+       width = 10, height = 8, unit="in", dpi = 300)
+
+#============================================================================
+
+# calculate and plot scaled incidence
+B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence)) %>%
+  ggplot() + 
+  geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
+  theme_bw() +
+  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled Incidence") +
+  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
+  scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
+  scale_color_brewer(palette = "Dark2") +
+  facet_wrap(.~country, scales = "free") +
+  theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.title = element_text(size = 20)) +
+  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
+  #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
+  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
+  theme(legend.position = "none", legend.text=element_text(size=12), legend.title = element_text(size = 16))
+
+
+# combined incidence plot
 ggsave(here("output", "JCVI.png"),
-       plot = (A | B),
+       plot = (B),
        width = 12, height = 5, unit="in", dpi = 300)
