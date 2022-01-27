@@ -5,11 +5,11 @@
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
-  filter(country == "England") %>%
+  filter(country == "England" | country == "South Africa" | country == "Brazil") %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scale,
-         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:28])*scale,
-         obs_uci = (exactci(cases, npop, 0.95)$conf.int[29:56])*scale) 
+         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:84])*scale,
+         obs_uci = (exactci(cases, npop, 0.95)$conf.int[85:168])*scale) 
 
 #---------- FIT USING NLS
 
@@ -19,12 +19,12 @@ fit_model <- function(x){
   
   #set initial parameter values for the model
   theta0 <- min(x$incidence, na.rm = TRUE)*0.05
-  model0 <- lm(log(incidence-theta0) ~ agey, data = x)
-  start = list(alpha = exp(coef(model0)[1]), beta  = coef(model0)[2], theta = theta0)
+  model0 <- lm(log(incidence) ~ agey, data = x)
+  start = list(alpha = exp(coef(model0)[1]), beta  = coef(model0)[2])
   
   #fit and NLS model
   nls(data = x,
-  incidence ~ exp(alpha) * exp(beta*agey) + theta,
+  incidence ~ exp(alpha) * exp(beta*agey),
   nls.control(maxiter = 2000),
   start = start
   )
@@ -76,17 +76,17 @@ ipd_curves <- ipd_mc %>% map_df(summarise_from_model, .id = "serogroup") %>% mut
 # generate relation table for ggplotting
 ipd_curves <- rbind(
   
-#  filter(ipd_curves, serogroup == "All serotypes.Brazil" | serogroup == "PCV13.Brazil" | serogroup == "PCV20.Brazil" | serogroup == "PPV23.Brazil") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Brazil"),
+  filter(ipd_curves, serogroup == "All serotypes.Brazil" | serogroup == "PCV13.Brazil" | serogroup == "PCV20.Brazil" | serogroup == "PPV23.Brazil") %>% 
+    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Brazil"),
   
   filter(ipd_curves, serogroup == "All serotypes.England" | serogroup == "PCV13.England" | serogroup == "PCV20.England" | serogroup == "PPV23.England") %>% 
-    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England")
+    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "England"),
   
-  #filter(ipd_curves, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PCV20.Malawi" | serogroup == "PPV23.Malawi") %>% 
-    #mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
+  filter(ipd_curves, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PCV20.Malawi" | serogroup == "PPV23.Malawi") %>% 
+    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
   
-#  filter(ipd_curves, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PCV20.South Africa" | serogroup == "PPV23.South Africa") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
+  filter(ipd_curves, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PCV20.South Africa" | serogroup == "PPV23.South Africa") %>% 
+    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
 ) %>% mutate(`50%` = if_else(`50%` <0, 0, `50%`), `2.5%` = if_else(`2.5%` <0, 0, `2.5%`), `97.5%` = if_else(`97.5%` <0, 0, `97.5%`))
 
 #============================================================================
@@ -94,7 +94,7 @@ ipd_curves <- rbind(
 # calculate and plot scaled incidence
 ipd_scaled <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence))
 
-A <- filter(ipd_scaled, country == "England") %>% 
+A <- filter(ipd_scaled, country == "South Africa") %>% 
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
   theme_bw() +
@@ -114,11 +114,11 @@ A <- filter(ipd_scaled, country == "England") %>%
 B <- ggplot() +
   geom_line(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
   geom_ribbon(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), fill = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
-  geom_point(data = filter(ipd), aes(x = agey, y = obs, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), size = cases), shape = 1, stroke = 1.5) +
-  geom_errorbar(data = filter(ipd), aes(agey, ymin = obs_lci, ymax = obs_uci, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), width = 0, size = 0.3, position = position_dodge(width = 0.05)) +
+  geom_point(data = filter(ipd), aes(x = agey, y = obs, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), size = cases), shape = 1, stroke = 1.5, position = position_dodge(width = 1)) +
+  geom_errorbar(data = filter(ipd), aes(agey, ymin = obs_lci, ymax = obs_uci, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), width = 0, size = 0.3, position = position_dodge(width = 1)) +
   theme_bw() +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  #facet_grid(.~country, scales = "free") +
+  facet_wrap(.~country, scales = "free") +
   scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 1)) +
   labs(title = "", subtitle = "", x = "Age (years)", y = "IPD incidence per 100,000 population") +
   theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
