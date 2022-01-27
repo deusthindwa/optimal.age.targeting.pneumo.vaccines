@@ -4,10 +4,8 @@
 # 1/08/2021-30/12/2021
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
-scaling = 100000
+scaling = 100000 #population
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
-  filter(country == "England" | country == "South Africa" | country == "Brazil" | country == "Malawi") %>%
-  #filter(country == "Malawi") %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scaling,
          obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:112])*scaling,
@@ -16,7 +14,7 @@ ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
 #---------- FIT USING NLS
 
 # estimate the rest of parameters using a simple linear model
-# log(y-theta0) = log(alpha0) + beta0*age
+# log(y) = log(alpha0) + beta0*age
 fit_model <- function(x){
   
   #set initial parameter values for the model
@@ -100,7 +98,7 @@ A <- ggplot() +
   geom_errorbar(data = filter(ipd), aes(agey, ymin = obs_lci, ymax = obs_uci, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), width = 0, size = 0.3, position = position_dodge(width = 1)) +
   theme_bw() +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
-  facet_wrap(.~country, scales = "free") +
+  facet_wrap(~country, scales = "free_y") +
   scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 1)) +
   labs(title = "", subtitle = "", x = "Age (years)", y = "IPD incidence per 100,000 population") +
   theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02), axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
