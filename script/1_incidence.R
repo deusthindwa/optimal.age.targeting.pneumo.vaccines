@@ -85,14 +85,21 @@ ipd_curves <- rbind(
   #filter(ipd_curves, serogroup == "All serotypes.Malawi" | serogroup == "PCV13.Malawi" | serogroup == "PCV20.Malawi" | serogroup == "PPV23.Malawi") %>% 
     #mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "Malawi"),
   
-#  filter(ipd_curves, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PCV20.South Africa" | serogroup == "PPV23.South Africa") %>% 
-#    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
-) %>% mutate(`50%` = if_else(`50%` <0, 0, `50%`), `2.5%` = if_else(`2.5%` <0, 0, `2.5%`), `97.5%` = if_else(`97.5%` <0, 0, `97.5%`))
+  #  filter(ipd_curves, serogroup == "All serotypes.South Africa" | serogroup == "PCV13.South Africa" | serogroup == "PCV20.South Africa" | serogroup == "PPV23.South Africa") %>% 
+  #    mutate(serogroup = substr(serogroup,1,5)) %>% mutate(serogroup = if_else(serogroup == "All s", "All serotypes", serogroup), country = "South Africa")
+) %>% 
+  # mutate(`50%`   = if_else(`50%` < 0, 0, `50%`),
+  #            `2.5%`  = if_else(`2.5%` < 0, 0, `2.5%`), 
+  #            `97.5%` = if_else(`97.5%` <0, 0, `97.5%`)) %>%
+  mutate_at(.vars = vars(`2.5%`, `50%`, `97.5%`),
+            .funs = ~pmax(0, .))
 
 #============================================================================
 
 # calculate and plot scaled incidence
-ipd_scaled <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence))
+ipd_scaled <- ipd %>% 
+  dplyr::group_by(country, serogroup) %>% 
+  dplyr::mutate(p = incidence/sum(incidence))
 
 A <- filter(ipd_scaled, country == "England") %>% 
   ggplot() + 

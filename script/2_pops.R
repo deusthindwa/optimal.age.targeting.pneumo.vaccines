@@ -15,7 +15,7 @@ pop_country <- c("Brazil" = "blue",
                  "Malawi" = "Black",
                  "South Africa" = "orange")
 
-pop_totals <- list(`England` = 56286961, # mid-2019 in 
+pop_totals <- list(`England`       = 56286961, # mid-2019 in 
                    `Malawi`        = 66589, # mid-2018 pop in Blantyre
                    `South Africa`  = 6907974, # mid-2016
                    `Brazil`        = 27734412) %>% # projected from 2011 to 2016
