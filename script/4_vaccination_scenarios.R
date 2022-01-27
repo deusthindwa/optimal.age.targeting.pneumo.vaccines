@@ -80,27 +80,27 @@ scenarios <- expand.grid(
     select(-waning)
     
 # simulate scenarios for each VE value (for use)
-#scenariosp <- scenarios %<>%
-#    crossing(sim = 1:nsims, Vac.age = seq(55, 85, by = 5)) %>%
-#    dplyr::left_join(
-#        dplyr::select(df_from_study_,
-#                      Study.waning = Study,
-#                      sim,
-#                      rate),
-#        by = c("sim","Study.waning")) %>%
+scenariosp <- scenarios %<>%
+    crossing(sim = 1:nsims, Vac.age = seq(55, 85, by = 5)) %>%
+    dplyr::left_join(
+        dplyr::select(df_from_study_,
+                      Study.waning = Study,
+                      sim,
+                      rate),
+        by = c("sim","Study.waning")) %>%
   
-#    dplyr::left_join(
-#        dplyr::select(df_from_study_,
-#                      Study.VE = Study,
-#                      VE,
-#                      sim),
-#        by = c("sim","Study.VE")) %>%
+    dplyr::left_join(
+        dplyr::select(df_from_study_,
+                      Study.VE = Study,
+                      VE,
+                      sim),
+        by = c("sim","Study.VE")) %>%
   
-#    dplyr::mutate(rate  = replace_na(data = rate, 0),
-#                  scale = initial_VE(Vac.age, serogroup, age_dep),
-#                  VE    = scale*VE) %>%
+    dplyr::mutate(rate  = replace_na(data = rate, 0),
+                  scale = initial_VE(Vac.age, serogroup, age_dep),
+                  VE    = scale*VE) %>%
   
-#    select(-scale)
+    select(-scale)
     
 # we want the curve to be at VE if age >= vac.age + delay. when delay > 0, we want to subtract delay off
 VE_by_Vac.age <- 
