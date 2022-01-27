@@ -7,9 +7,15 @@
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
   filter(country == "England") %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
-         obs = (cases/npop)*scale,
-         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:28])*scale,
-         obs_uci = (exactci(cases, npop, 0.95)$conf.int[29:56])*scale) 
+         obs = (cases/npop)*scale)
+
+ipd %<>% nest(data = c(cases, npop)) %>%
+  mutate(CI = map(.x = data, ~exactci(.x$cases, .x$npop, conf.level = 0.95)) %>%
+           map('conf.int') %>%
+           map(~data.frame(obs_lci = .x[1]*scale,
+                           obs_uci = .x[2]*scale))) %>%
+  unnest_wider(CI) %>%
+  unnest_wider(data)
 
 #---------- FIT USING NLS
 
