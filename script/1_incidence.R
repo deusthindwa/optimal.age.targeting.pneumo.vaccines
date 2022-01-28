@@ -8,7 +8,12 @@ scaling = 100000 #population
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scale) %>%
-  mutate(serogroup = ifelse(serogroup == "All serotypes", "All", serogroup))
+  mutate(serogroup = ifelse(serogroup == "All serotypes", "All", serogroup)) %>%
+  mutate(serogroup = factor(serogroup,
+                            levels = c("All",
+                                       "PPV23",
+                                       "PCV20",
+                                       "PCV13")))
 
 ipd %<>% nest(data = c(cases, npop)) %>%
   mutate(CI = map(.x = data, ~exactci(.x$cases, .x$npop, conf.level = 0.95)) %>%
@@ -37,9 +42,8 @@ fit_model <- function(x){
   )
 }
 
-ipd_model <- ipd %>% 
-  split(list(.$serogroup, .$country)) %>%
-  purrr::map(~fit_model(.x))
+ipd_curves <- ipd %>% nest(data = -c(serogroup, country)) %>%
+  mutate(model = map(.x = data, ~fit_model(.x)))
 
 #-------------------------------------------------------
 
@@ -62,7 +66,9 @@ simulate_from_model <- function(x, newdata, nsim){
 # run the simulations
 nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 ipd_x <- data.frame(agey = seq(55, 90, by = 1))
-ipd_mc <- ipd_model %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = nsims))
+# ipd_mc <- ipd_model %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = nsims))
+
+ipd_curves %<>% mutate(mc = map(.x = model, ~simulate_from_model(.x, ipd_x, nsims)))
 
 #-------------------------------------------------------
 
@@ -76,20 +82,19 @@ summarise_from_model <- function(x, probs = c(0.025, 0.5, 0.975)){
 }
 
 # summarise uncertainty
-ipd_curves <- map_df(ipd_mc, summarise_from_model, .id = "serogroup") 
+
+ipd_curves %<>%
+  mutate(curves = map(.x = mc, summarise_from_model)) %>%
+  unnest(curves) %>%
+  select(-data, -model, -mc)
 
 #-------------------------------------------------------
 
 # generate relation table for ggplotting
-ipd_curves %<>% separate(serogroup, into = c("serogroup", "country"), sep = "\\.") %>%
+# can't have less than 0
+ipd_curves %<>% 
   mutate_at(.vars = vars(`2.5%`, `50%`, `97.5%`),
             .funs = ~pmax(0, .))
-
-ipd_curves %<>% mutate(serogroup = factor(serogroup,
-                                          levels = c("All",
-                                                     "PPV23",
-                                                     "PCV20",
-                                                     "PCV13")))
 
 #============================================================================
 
@@ -98,77 +103,41 @@ ipd_scaled <- ipd %>%
   dplyr::group_by(country, serogroup) %>% 
   dplyr::mutate(p = incidence/sum(incidence))
 
-A <- #filter(ipd_scaled, country == "South Africa") %>% 
+A <- 
   ggplot(data = ipd_scaled) + 
-  # geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
-  geom_col(aes(x = agey, y = p#,
-               #fill = serogroup
-               ),
+  geom_col(aes(x = agey, y = p),
            color = NA) +
-  theme_bw() +
-  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled Incidence") +
-  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
-  # scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
-  # scale_color_brewer(palette = "Dark2") +
-  theme(axis.text = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, 
-                                     face = "bold",
-                                     margin = margin(t = 10, b = -25),
-                                     hjust = 0.02)) +
-  theme(plot.title = element_text(size = 20)) +
-  theme(axis.title = element_text(size = 14)) +
-  theme(legend.position = "none", legend.text=element_text(size=12), 
-        legend.title = element_text(size = 16)) +
-  facet_grid(country  ~ serogroup) +
-  theme(strip.text       = element_text(size = 14), 
+  theme_bw(base_size = 14, base_family = 'Lato') +
+  labs(x = "Age (years)", y = "Scaled Incidence") +
+  scale_y_continuous(limits = c(0, NA), labels = ~sprintf("%g", .)) +
+  scale_x_continuous(breaks = seq(60, 90, 10), limits = c(NA, 90)) +
+  theme(axis.text        = element_text(face = "bold"),
+        legend.position  = "none", 
+        legend.text      = element_text(size=12), 
+        legend.title     = element_text(size = 16),
         strip.background = element_rect(fill = "white"),
-        panel.border     = element_rect(colour = "black", fill=NA, size=1))
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
+  facet_grid(country ~ serogroup) 
 
 # plot fitted IPD incidence along with observed IPD cases with uncertainty
-B <- ggplot() +
-  geom_line(data = filter(ipd_curves),
-            aes(x = agey, y = `50%`#, 
-                #color = serogroup
-                ), size = 1) +
-  geom_ribbon(data = filter(ipd_curves), 
-              aes(x = agey, y = `50%`,
-                  #fill = serogroup,
+B <- ggplot(data = ipd_curves) +
+  geom_line(aes(x = agey, y = `50%`), size = 1) +
+  geom_ribbon(aes(x = agey, y = `50%`,
                   ymin = `2.5%`, ymax = `97.5%`),
               alpha = 0.2, color = NA) +
-  geom_point(data = filter(ipd),
-             aes(x = agey, y = obs, 
-                 #color = serogroup, 
-                 size  = cases), 
-             shape = 1, stroke = 1.5, position = position_dodge(width = 1)) +
-  geom_errorbar(data = filter(ipd),
-                aes(agey, 
+  geom_point(data = ipd, aes(x = agey, y = obs), size = 2) +
+  geom_linerange(data = ipd,
+                aes(x = agey, 
                     ymin = obs_lci, 
-                    ymax = obs_uci#,
-                    #color = serogroup
-                    ),
-                width = 0, size = 0.3, position = position_dodge(width = 1)) +
-  theme_bw() +
-  # scale_x_continuous(breaks = seq(55, 90, 5)) +
+                    ymax = obs_uci)) +
   facet_grid(country  ~ serogroup, scales = "free_y") +
-  scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 1)) +
-  labs(title = "", subtitle = "",
-       x = "Age (years)", 
+  scale_y_continuous(limits = c(0, NA), labels = ~sprintf("%g", .)) +
+  labs(x = "Age (years)", 
        y = "IPD incidence per 100,000 population") +
-  theme(plot.subtitle = element_text(size = 18, face = "bold",
-                                     margin = margin(t = 10, b = -25),
-                                     hjust = 0.02),
-        axis.text     = element_text(face = "bold", size = 14),
-        axis.title    = element_text(size = 14),
-        legend.position = "right") +
-  scale_size_area(max_size = 4) +
-  guides(#color = guide_legend(title = "Serogroup"),
-         #fill  = guide_legend(title = "Serogroup"),
-         size  = guide_legend(title = "Observed cases")) +
-  # scale_color_brewer(palette = "Dark2") +
-  # scale_fill_brewer(palette = "Dark2") + 
-  theme(strip.text       = element_text(size = 14), 
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
-        panel.border     = element_rect(colour = "black", fill=NA, size=1))
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
 
 #============================================================================
@@ -176,30 +145,48 @@ B <- ggplot() +
 
 # combined incidence plot
 ggsave(here("output", "JCVI.png"),
-       plot = (B),
-       width = 12, height = 5, unit="in", dpi = 300)
+       plot = (A + B),
+       width = 12, height = 6, unit="in", dpi = 300)
 
 C <- 
   # calculate and plot scaled incidence
-  B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence)) %>%
+  ipd %>% dplyr::group_by(country, serogroup) %>%
+  dplyr::mutate(p = incidence/sum(incidence),
+                serogroup = ) %>%
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
   theme_bw() +
-  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled Incidence") +
+  labs(x = "Age (years)", y = "Scaled Incidence") +
   scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
   scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
   scale_color_brewer(palette = "Dark2") +
   facet_wrap(.~country, scales = "free") +
   theme(axis.text.x = element_text(face = "bold", size = 14), axis.text.y = element_text(face = "bold", size = 14)) +
-  theme(plot.subtitle = element_text(size = 18, face = "bold", margin = margin(t = 10, b = -25), hjust = 0.02)) +
-  theme(plot.title = element_text(size = 20)) +
-  theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
-  #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(legend.position = "none", legend.text=element_text(size=12), legend.title = element_text(size = 16))
-
+  theme(plot.subtitle = element_text(size = 18, face = "bold", 
+                                     margin = margin(t = 10, b = -25), hjust = 0.02)) +
+  theme(plot.title   = element_text(size = 20),
+        axis.title   = element_text(size = 14),
+        panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+  
 
 # combined incidence plot
 ggsave(here("output", "Fig2_ipd_incidence.png"),
-       plot = A,
+       plot = C,
        width = 10, height = 8, unit="in", dpi = 300)
+
+
+## show incidence and observed
+
+ipd
+
+ipd_curves %>%
+  mutate(agegroup = cut(agey, breaks = c(seq(55,85,by=5),Inf), include.lowest = T, right = F)) %>%
+  mutate(agegroup = gsub(pattern = '(\\[|\\]|\\(|\\))', replacement = "", x = agegroup)) %>%
+  separate(agegroup, into = c('low', 'high'), sep = ',') %>%
+  mutate_at(.vars = vars(low, high),
+            .funs = parse_number) %>%
+  mutate(high = high - 1) %>%
+  mutate(agegroup = ifelse(is.na(high), paste0(low, "+"), paste(low, high, sep = '-'))) %>%
+  select(-low, -high) %>%
+  left_join(ipd) %>%
+  ggplot(data= . , aes(x = obs, ))
