@@ -17,7 +17,7 @@ VE_impact_by_age <- VE_by_Vac.age %>%
   dplyr::summarise(Impact = sum(Impact)) %>%
   
   dplyr::mutate(Waning = dplyr::case_when(
-        Study.waning == "None"           ~ "No waning",
+        Study.waning == "None"                  ~ "No waning",
         Study.waning == "Andrews et al. (2012)" ~ "Fast waning",
         Study.waning == "Djennad et al. (2018)" ~ "Slow waning"),
         Waning = ifelse(delay > 0, paste(Waning, sprintf("\n(%i years' delay)", delay)), Waning)) 
@@ -29,16 +29,23 @@ VE_impact_by_age_ <- VE_impact_by_age %>%
   unnest_wider(Q)
 
 # plot vaccine impact as in expected number of cases averted
-VE_A <- ggplot(VE_impact_by_age_, aes(x = Vac.age, y = `50%`, color = factor(age_dep), group = interaction(Waning, age_dep, serogroup, delay, country))) +
+VE_A <- ggplot(VE_impact_by_age_,
+               aes(x = Vac.age, y = `50%`,
+                   color = factor(age_dep),
+                   group = interaction(Waning, age_dep, serogroup, delay, country))) +
   geom_line() + 
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = factor(age_dep)), color = NA, alpha = 0.2) +
-  facet_grid(country ~ serogroup + Waning, scales = "free_y") +
+  facet_nested(country ~ serogroup + Waning, scales = "free_y") +
   theme_bw() +
   scale_y_continuous(limits = c(0,NA)) +
-  scale_x_continuous(breaks = seq(55, 90, 5)) +
+  scale_x_continuous(breaks = seq(60, 90, 10)) +
   theme(axis.text=element_text(size=10, color="black")) +
   xlab("Vaccination Age (years)") +
   ylab("Impact (expected total cases averted)") +
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(legend.position = "bottom") +
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
