@@ -3,13 +3,9 @@
 # exponential decay and growth models.
 # 1/08/2021-30/09/2021
 
+# Calculate the impact of an intervention targeting 65 year olds
+# Assume coverage target of 70%
 
-# compute maximum vaccine impact
- # VE_impact_max <- VE_impact_by_age %>%
- #   dplyr::group_by_at(.vars = dplyr::vars(-c(Vac.age, Impact))) %>%
- #   dplyr::filter(Impact == max(Impact))
-
-# 65y old programme impact (%) at 70% coverage
 coverage <- 0.7
 
 Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
