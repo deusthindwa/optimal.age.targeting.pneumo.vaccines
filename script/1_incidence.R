@@ -4,12 +4,11 @@
 # 1/08/2021-30/12/2021
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
-scaling = 100000 #population
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
-         obs = (cases/npop)*scaling,
-         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:112])*scaling,
-         obs_uci = (exactci(cases, npop, 0.95)$conf.int[113:224])*scaling) 
+         obs = (cases/npop)*1e5,
+         obs_lci = (exactci(cases, npop, 0.95)$conf.int[1:112])*1e5,
+         obs_uci = (exactci(cases, npop, 0.95)$conf.int[113:224])*1e5) 
 
 #---------- FIT USING NLS
 
@@ -124,9 +123,9 @@ ggsave(here("output", "Fig2_ipd_incidence.png"),
 # calculate and plot scaled incidence
 B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence)) %>%
   ggplot() + 
-  geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
+  geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
   theme_bw() +
-  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled Incidence") +
+  labs(title = "", subtitle = "", x = "Age (years)", y = "Scaled IPD incidence") +
   scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
   scale_x_continuous(breaks = seq(55, 90, 5), limits = c(55, 90)) +
   scale_color_brewer(palette = "Dark2") +
@@ -137,10 +136,10 @@ B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence
   theme(axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14)) +
   #theme(axis.title.x = element_blank(), axis.text.x = element_blank()) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(legend.position = "none", legend.text=element_text(size=12), legend.title = element_text(size = 16))
-
+  theme(legend.position = "right", legend.text=element_text(size=12), legend.title = element_text(size = 16)) +
+  guides(color=guide_legend(title="Serogroup"))
 
 # combined incidence plot
-ggsave(here("output", "JCVI.png"),
+ggsave(here("output", "S1Fig_scaled_incidence.png"),
        plot = (B),
-       width = 12, height = 5, unit="in", dpi = 300)
+       width = 10, height = 8, unit="in", dpi = 300)

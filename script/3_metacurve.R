@@ -117,7 +117,7 @@ VE_plot <- ggplot(data=df) +
   theme(strip.text.x = element_text(size = 16)) +
   geom_text(data = ans_by_study_parms, x = 10, y = 50, parse = T, aes(label = paste("VE == ", round(A,1), "*e^{", round(B,3), "*t}"))) 
 
-ggsave("output/Fig S2_vaccine_efficacy.png",
+ggsave("output/S2Fig_vaccine_efficacy.png",
        plot = VE_plot,
        width = 10, height = 4, unit="in", dpi = 300)
 
