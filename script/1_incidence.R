@@ -41,7 +41,7 @@ fit_model <- function(x){
   )
 }
 
-ipd_curves <- ipd %>% nest(data = -c(serogroup, country)) %>%
+ipd_model <- ipd %>% nest(data = -c(serogroup, country)) %>%
   mutate(model = map(.x = data, ~fit_model(.x)))
 
 #-------------------------------------------------------
@@ -67,7 +67,7 @@ nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 ipd_x <- data.frame(agey = seq(55, 90, by = 1))
 # ipd_mc <- ipd_model %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = nsims))
 
-ipd_curves %<>% mutate(mc = map(.x = model, ~simulate_from_model(.x, ipd_x, nsims)))
+ipd_mc <- mutate(ipd_model, mc = map(.x = model, ~simulate_from_model(.x, ipd_x, nsims)))
 
 #-------------------------------------------------------
 
@@ -82,10 +82,10 @@ summarise_from_model <- function(x, probs = c(0.025, 0.5, 0.975)){
 
 # summarise uncertainty
 
-ipd_curves %<>%
-  mutate(curves = map(.x = mc, summarise_from_model)) %>%
-  unnest(curves) %>%
-  select(-data, -model, -mc)
+ipd_curves <- 
+  mutate(ipd_mc, curves = map(.x = mc, summarise_from_model)) %>%
+  select(-data, -model, -mc) %>%
+  unnest(curves)
 
 #-------------------------------------------------------
 
