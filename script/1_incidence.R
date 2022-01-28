@@ -91,11 +91,15 @@ ipd_curves <- rbind(
 #============================================================================
 
 # plot fitted IPD incidence along with observed IPD cases with uncertainty
+  #arrange serogroups so position of line plots correspond to position in the legend
+ipd_curves <- ipd_curves %>% mutate(serogroup = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]))
+ipd <- ipd %>% mutate(serogroup = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]))
+
 A <- ggplot() +
-  geom_line(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
-  geom_ribbon(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), fill = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
-  geom_point(data = filter(ipd), aes(x = agey, y = obs, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)]), size = cases), shape = 1, stroke = 1.5, position = position_dodge(width = 1)) +
-  geom_errorbar(data = filter(ipd), aes(agey, ymin = obs_lci, ymax = obs_uci, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), width = 0, size = 0.3, position = position_dodge(width = 1)) +
+  geom_line(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = serogroup), size = 1) +
+  geom_ribbon(data = filter(ipd_curves), aes(x = agey, y = `50%`, color = serogroup, fill = serogroup, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2, color = NA) +
+  geom_point(data = filter(ipd), aes(x = agey, y = obs, color = serogroup, size = cases), shape = 1, stroke = 1.5, position = position_dodge(width = 1)) +
+  geom_errorbar(data = filter(ipd), aes(agey, ymin = obs_lci, ymax = obs_uci, color = serogroup), width = 0, size = 0.3, position = position_dodge(width = 1)) +
   theme_bw() +
   scale_x_continuous(breaks = seq(55, 90, 5)) +
   facet_wrap(~country, scales = "free_y") +
