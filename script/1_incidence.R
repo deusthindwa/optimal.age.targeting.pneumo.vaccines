@@ -4,7 +4,6 @@
 # 1/08/2021-30/12/2021
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
-scaling = 100000 #population
 ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scale) %>%
@@ -154,7 +153,7 @@ C <-
   dplyr::mutate(p = incidence/sum(incidence),
                 serogroup = ) %>%
   ggplot() + 
-  geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
+  geom_line(aes(x = agey, y = p, color = serogroup), size = 1) +
   theme_bw() +
   labs(x = "Age (years)", y = "Scaled Incidence") +
   scale_y_continuous(limits = c(0, NA), labels = label_number(accuracy = 0.01)) +
