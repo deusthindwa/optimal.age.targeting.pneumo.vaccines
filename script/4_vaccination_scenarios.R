@@ -107,7 +107,9 @@ VE_by_Vac.age <-
     scenarios %>%
     dplyr::inner_join(filter(pop_cases, serogroup != "All serotypes")) %>%
     dplyr::mutate(agey_since = agey - Vac.age) %>%
-    dplyr::mutate(agey_since = ifelse(test = delay == 0, yes = agey_since, no = pmax(0, agey_since - delay))) %>% 
+    dplyr::mutate(agey_since = ifelse(test = delay == 0,
+                                      yes  = agey_since, 
+                                      no   = pmax(0, agey_since - delay))) %>% 
     dplyr::mutate(Vaccine_Efficacy = VE*exp(rate*(1 + agey_since))) %>%
     dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
     dplyr::mutate(Impact = value*cases) 
