@@ -170,15 +170,18 @@ B <- ggplot() +
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1))
 
-# combined incidence plot
-ggsave(here("output", "Fig2_ipd_incidence.png"),
-       plot = A,
-       width = 10, height = 8, unit="in", dpi = 300)
 
 #============================================================================
 
-# calculate and plot scaled incidence
-B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence)) %>%
+
+# combined incidence plot
+ggsave(here("output", "JCVI.png"),
+       plot = (B),
+       width = 12, height = 5, unit="in", dpi = 300)
+
+C <- 
+  # calculate and plot scaled incidence
+  B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence/sum(incidence)) %>%
   ggplot() + 
   geom_line(aes(x = agey, y = p, color = factor(serogroup, levels(factor(serogroup))[c(1,4,3,2)])), size = 1) +
   theme_bw() +
@@ -197,6 +200,6 @@ B <- ipd %>% dplyr::group_by(country, serogroup) %>% dplyr::mutate(p = incidence
 
 
 # combined incidence plot
-ggsave(here("output", "JCVI.png"),
-       plot = (B),
-       width = 12, height = 5, unit="in", dpi = 300)
+ggsave(here("output", "Fig2_ipd_incidence.png"),
+       plot = A,
+       width = 10, height = 8, unit="in", dpi = 300)
