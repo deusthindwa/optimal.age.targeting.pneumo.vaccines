@@ -3,7 +3,12 @@
 .Rhistory
 .RData
 .Ruserdata
+<<<<<<< HEAD
 =======
 
 .DS_Store
 >>>>>>> 8cc7a33e38284fedb01989b12e4ee4a861e8b0a8
+=======
+
+.DS_Store
+>>>>>>> e9449bc34c5340aee694a5357e3efaf6635e48b8
