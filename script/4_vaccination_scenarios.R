@@ -33,8 +33,9 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
                          age >= 65 ~ 0.36/0.54,
                          age >= 55 ~ 0.54/0.54,
                          TRUE    ~ NA_real_),
-                         TRUE    ~ NA_real_)
+    TRUE    ~ NA_real_)
 }
+
 df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
 
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
@@ -48,7 +49,8 @@ scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
                                    Study.VE     = NA)) %>%
     dplyr::bind_rows(.id = "scenario") %>%
     dplyr::mutate(age_dep = scenario >= 3) %>%
-    tidyr::crossing(Vac.age = seq(55, 85, by = 5), serogroup = c("PPV23", "PCV20", "PCV13")) 
+    tidyr::crossing(Vac.age = seq(55, 85, by = 5), 
+                    serogroup = c("PCV13", "PCV20", "PPV23")) 
 
 # summarise scenarios by VE, serogroup, age dependency, delay, and efficacy waning
 scenarios <- expand.grid(
@@ -78,7 +80,7 @@ scenarios <- expand.grid(
     TRUE ~ NA_character_)) %>%
   
     select(-waning)
-    
+
 # simulate scenarios for each VE value (for use)
 scenariosp <- scenarios %<>%
     crossing(sim = 1:nsims, Vac.age = seq(55, 85, by = 5)) %>%
@@ -101,7 +103,7 @@ scenariosp <- scenarios %<>%
                   VE    = scale*VE) %>%
   
     select(-scale)
-    
+
 # we want the curve to be at VE if age >= vac.age + delay. when delay > 0, we want to subtract delay off
 VE_by_Vac.age <- 
     scenarios %>%

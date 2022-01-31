@@ -18,7 +18,7 @@ pop_country <- c("Brazil" = "blue",
 pop_totals <- list(`England` = 16492465, # mid-2017 in 
                    `Malawi`        = 66589, # mid-2018 pop in Blantyre
                    `South Africa`  = 6907974, # mid-2016
-                   `Brazil`        = 27734412) %>% # projected from 2011 to 2016
+                   `Brazil`        = 27734412) %>% # projected from 2011 to mid-2016
   map_df(.id = "country", ~data.frame(N = .x))
 
 #set smooth or unsmooth conditions
