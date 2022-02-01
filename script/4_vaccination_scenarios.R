@@ -82,27 +82,17 @@ scenarios <- expand.grid(
     select(-waning)
 
 # simulate scenarios for each VE value (for use)
-scenariosp <- scenarios %<>%
-    crossing(sim = 1:nsims, Vac.age = seq(55, 85, by = 5)) %>%
+scenarios
+
+scenarios <- scenarios %>%
+    crossing(sim = 1:nsims, 
+             Vac.age = seq(55, 85, by = 5)) %>%
     dplyr::left_join(
-        dplyr::select(df_from_study_,
-                      Study.waning = Study,
-                      sim,
-                      rate),
-        by = c("sim","Study.waning")) %>%
-  
-    dplyr::left_join(
-        dplyr::select(df_from_study_,
-                      Study.VE = Study,
-                      VE,
-                      sim),
-        by = c("sim","Study.VE")) %>%
-  
-    dplyr::mutate(rate  = replace_na(data = rate, 0),
-                  scale = initial_VE(Vac.age, serogroup, age_dep),
-                  VE    = scale*VE) %>%
-  
-    select(-scale)
+        dplyr::select(df_from_study,
+                      Study,
+                      fit,
+                      t,
+                      sim)) 
 
 # we want the curve to be at VE if age >= vac.age + delay. when delay > 0, we want to subtract delay off
 VE_by_Vac.age <- 
@@ -112,7 +102,7 @@ VE_by_Vac.age <-
     dplyr::mutate(agey_since = ifelse(test = delay == 0,
                                       yes  = agey_since, 
                                       no   = pmax(0, agey_since - delay))) %>% 
-    dplyr::mutate(Vaccine_Efficacy = VE*exp(rate*(1 + agey_since))) %>%
+    dplyr::mutate(Vaccine_Efficacy = fit/100) %>%
     dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
     dplyr::mutate(Impact = value*cases) 
 
