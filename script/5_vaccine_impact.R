@@ -50,7 +50,7 @@ VE_A <- ggplot(VE_impact_by_age_,
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
 
-ggsave(filename = "output/Fig3_vaccine_impact.png", 
+ggsave(filename = "output/Fig3_vaccine_impact_.png", 
        plot = VE_A,
        width = 14, height = 8, units = "in", dpi = 300)
 
@@ -66,9 +66,12 @@ VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>%
   unnest_wider(Q)
 
 #impact per 10000 older adults vaccinated
-VE_B <- ggplot(VE_impact_validated, aes(x = Vac.age, y= `50%`, color = factor(age_dep), group = interaction(Waning, age_dep, serogroup, delay, country))) +
+VE_B <- ggplot(VE_impact_validated, 
+               aes(x = Vac.age, y= `50%`, color = factor(age_dep),
+                   group = interaction(Waning, age_dep, serogroup, delay, country))) +
   geom_line() + 
-  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = factor(age_dep)), color = NA, alpha = 0.2) +
+  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = factor(age_dep)),
+              color = NA, alpha = 0.2) +
   facet_grid(country ~ serogroup + Waning, scales = "free_y") +
   theme_bw() +
   scale_y_continuous(limits = c(0, NA)) +
@@ -81,7 +84,7 @@ VE_B <- ggplot(VE_impact_validated, aes(x = Vac.age, y= `50%`, color = factor(ag
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
   theme(panel.grid.minor.y = element_blank())
 
-ggsave(filename = "output/Fig4_vaccine_herd_impact.png", 
+ggsave(filename = "output/Fig4_vaccine_herd_impact_.png", 
        plot = VE_B,
        width = 14, height = 8, units = "in", dpi = 300)
 

@@ -9,100 +9,64 @@ VE_table <- tibble::add_row(VE_table, Study = "None", rate = 0, `Half-life` = In
 # function to assign initial VE values. make a list check it twice
 initial_VE <- function(age, serogroup, age_dep = FALSE){
   
+  # age-dependent vaccine efficacy at time of vaccination may be superseded
+  dplyr::case_when(
+    serogroup == "PCV13" ~ 
+      dplyr::case_when(age_dep == FALSE ~ 1,
+                       age >= 75 ~ 0.30/0.54,
+                       age >= 65 ~ 0.36/0.54,
+                       age >= 55 ~ 0.54/0.54,
+                       TRUE    ~ NA_real_),
+    
     # age-dependent vaccine efficacy at time of vaccination may be superseded
-    dplyr::case_when(
-      serogroup == "PCV13" ~ 
-        dplyr::case_when(age_dep == FALSE ~ 1,
-                         age >= 75 ~ 0.30/0.54,
-                         age >= 65 ~ 0.36/0.54,
-                         age >= 55 ~ 0.54/0.54,
-                         TRUE    ~ NA_real_),
-      
-    # age-dependent vaccine efficacy at time of vaccination may be superseded
-      serogroup == "PCV20" ~ 
-        dplyr::case_when(age_dep == FALSE ~ 1,
-                         age >= 75 ~ 0.30/0.54,
-                         age >= 65 ~ 0.36/0.54,
-                         age >= 55 ~ 0.54/0.54,
-                         TRUE    ~ NA_real_),
-      
+    serogroup == "PCV20" ~ 
+      dplyr::case_when(age_dep == FALSE ~ 1,
+                       age >= 75 ~ 0.30/0.54,
+                       age >= 65 ~ 0.36/0.54,
+                       age >= 55 ~ 0.54/0.54,
+                       TRUE    ~ NA_real_),
+    
     # if no age dependency, we need to just use the value from relevant study, which we can handle outside this
-      serogroup == "PPV23" ~
-        dplyr::case_when(age_dep == FALSE ~ 1,
-                         age >= 75 ~ 0.30/0.54,
-                         age >= 65 ~ 0.36/0.54,
-                         age >= 55 ~ 0.54/0.54,
-                         TRUE    ~ NA_real_),
+    serogroup == "PPV23" ~
+      dplyr::case_when(age_dep == FALSE ~ 1,
+                       age >= 75 ~ 0.30/0.54,
+                       age >= 65 ~ 0.36/0.54,
+                       age >= 55 ~ 0.54/0.54,
+                       TRUE    ~ NA_real_),
     TRUE    ~ NA_real_)
 }
 
 df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
 
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
-scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
-                                   Study.VE     = "Andrews et al. (2012)"),
-                  `2` = data.frame(Study.waning = "Djennad et al. (2018)",
-                                   Study.VE     = "Djennad et al. (2018)"),
-                  `3` = data.frame(Study.waning = "Andrews et al. (2012)",
-                                   Study.VE     = NA),
-                  `4` = data.frame(Study.waning = "Djennad et al. (2018)",
-                                   Study.VE     = NA)) %>%
-    dplyr::bind_rows(.id = "scenario") %>%
-    dplyr::mutate(age_dep = scenario >= 3) %>%
-    tidyr::crossing(Vac.age = seq(55, 85, by = 5), 
-                    serogroup = c("PCV13", "PCV20", "PPV23")) 
-
-# summarise scenarios by VE, serogroup, age dependency, delay, and efficacy waning
-scenarios <- expand.grid(
-    data.frame(initial = c("Andrews et al. (2012)", "Djennad et al. (2018)"),
-               serogroup = c("PCV13", "PCV20", "PPV23", NA),
-               age_dep = c(TRUE, FALSE)),
-    stringsAsFactors = FALSE) %>% 
-  filter(!is.na(serogroup)) %>% 
-  distinct(initial, serogroup, age_dep) %>%
-  
-  arrange(serogroup, age_dep) %>% 
-  mutate(waning = case_when(
-        initial == "Andrews et al. (2012)" ~ "Fast",
-        (serogroup == "PCV13") & initial == "Djennad et al. (2018)" ~ "None",
-        serogroup == "PCV20" & initial == "Djennad et al. (2018)" ~ "None",
-        serogroup == "PPV23" & initial == "Djennad et al. (2018)" ~ "Slow",
-        TRUE ~ "Unknown")) %>%
-  
-  mutate(delay = ifelse((serogroup == "PCV13" | serogroup == "PCV20") & waning == "Fast", 5, 0),
-         initial = ifelse((serogroup == "PCV13" | serogroup == "PCV20"), "Andrews et al. (2012)", initial)) %>%
-  
-  rename(Study.VE = initial) %>%
-  mutate(Study.waning = case_when(
-    waning == "Fast" ~ "Andrews et al. (2012)",
-    waning == "Slow" ~ "Djennad et al. (2018)",
-    waning == "None" ~ "None", 
-    TRUE ~ NA_character_)) %>%
-  
-    select(-waning)
-
-# simulate scenarios for each VE value (for use)
-scenarios
-
-scenarios <- scenarios %>%
-    crossing(sim = 1:nsims, 
-             Vac.age = seq(55, 85, by = 5)) %>%
-    dplyr::left_join(
-        dplyr::select(df_from_study,
-                      Study,
-                      fit,
-                      t,
-                      sim)) 
+scenarios <- list(`PPV23` = crossing(delay = 0,
+                                     Study.waning = c("Andrews et al. (2012)",
+                                                      "Djennad et al. (2018)"),
+                                     age_dep = c(FALSE, TRUE),
+                                     serogroup = "PPV23"),
+                  `PCV`   = crossing(delay = c(0,5),
+                                     age_dep = c(FALSE, TRUE),
+                                     serogroup = c("PCV13",
+                                                   "PCV20")) %>%
+                    mutate(Study.waning = ifelse(delay == 0,
+                                                 "None",
+                                                 "Andrews et al. (2012)"))) %>%
+  bind_rows %>%
+  mutate(Study.VE = ifelse(Study.waning == "Djennad et al. (2018)",
+                           "Djennad et al. (2018)",
+                           "Andrews et al. (2012)")) %>%
+  crossing(Vac.age = seq(55, 85, by = 5),
+           age     = seq(55, 85, by = 1)) %>%
+  mutate(t     = age - Vac.age) %>%
+  mutate(t_eff = pmax(0, t - delay)) %>%
+  mutate(scale_initial = initial_VE(Vac.age, serogroup, age_dep),
+         scale_initial = ifelse(t < 0, 0, scale_initial)) 
 
 # we want the curve to be at VE if age >= vac.age + delay. when delay > 0, we want to subtract delay off
 VE_by_Vac.age <- 
-    scenarios %>%
-    dplyr::inner_join(filter(pop_cases, serogroup != "All serotypes")) %>%
-    dplyr::mutate(agey_since = agey - Vac.age) %>%
-    dplyr::mutate(agey_since = ifelse(test = delay == 0,
-                                      yes  = agey_since, 
-                                      no   = pmax(0, agey_since - delay))) %>% 
-    dplyr::mutate(Vaccine_Efficacy = fit/100) %>%
-    dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
-    dplyr::mutate(Impact = value*cases) 
+  scenarios %>%
+  inner_join(select(df_from_study, Study.VE = Study, fit, sim)) %>% # get initial waning
+  mutate(VE = fit * scale_initial/100) %>%
+  dplyr::mutate(Impact = VE*cases) 
 
+# need to deal with agey_since in terms of dealing with 5 year delay
