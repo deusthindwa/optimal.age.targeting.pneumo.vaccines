@@ -62,12 +62,31 @@ simulate_from_ans <- function(x, nsim = 1e4, newdata){
   return(dat)
 }
 
+
+df_from_study <- 
+  dat_ %>%
+  filter(!grepl('Wright', Study)) %>%
+  mutate(sd = (Max - Min)/2/1.96,
+         xmax = xmax - 0.5)  %>%
+  nest(data = -c(Study, xmin, xmax)) %>%
+  mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 50))))) %>%
+  mutate(newdata = map(.x = newdata, ~crossing(sim = 1:nsims, .x))) %>%
+  mutate(newdata = map2(.x = newdata, .y = data,
+                        .f = ~mutate(.x, fit = rnorm(n    = nrow(.x),
+                                                     mean = .y$Mean,
+                                                     sd   = .y$sd)))) %>%
+  select(-data) %>%
+  unnest(newdata) %>%
+  arrange(Study, sim, t, fit)
+  
 # simulated VE dataset
-df_from_study <- ans_by_study %>%
-  map(~list(M = .x$par, V = solve(.x$hessian))) %>%
-  map_df(~simulate_from_ans(.x, nsim = nsims, newdata = data.frame(t = seq(0,20))), .id = "Study") %>%
-  rename(VE = X1, rate = X2) %>%
-  mutate(VE = VE/100)
+# df_from_study <- ans_by_study %>%
+#   map(~list(M = .x$par, V = solve(.x$hessian))) %>%
+#   map_df(~simulate_from_ans(.x, nsim = nsims, 
+#                             newdata = data.frame(t = seq(0,20))),
+#          .id = "Study") %>%
+#   rename(VE = X1, rate = X2) %>%
+#   mutate(VE = VE/100)
 
 # simulated VE dataset with mean VE and 95%CI
 df_by_study_q <- df_from_study %>%
@@ -76,50 +95,20 @@ df_by_study_q <- df_from_study %>%
   unnest_wider(Q) %>%
   select(-data)
 
-# summary of initial VE and waning rate and 95%CI from model
-ans_by_study_parms_from_model <-
-  df_from_study %>%
-  distinct(Study, VE, sim, rate) %>%
-  mutate(rate = -rate) %>%
-  gather(key, value, VE, rate) %>%
-  nest(data = c(sim, value)) %>%
-  mutate(Q = map(data, ~quantile(.x$value, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q) %>%
-  select(-data) %>%
-  group_by(Study, key) %>%
-  transmute(value = sprintf("%0.2f (%0.2f, %0.2f)", `50%`, `2.5%`, `97.5%`)) %>%
-  spread(key, value) %>%
-  select(Study, `Initial efficacy` = VE, `Waning rate` = rate) %>%
-  write_csv(here("output", "initial_VE_and_waning_rates.csv"))
-
-# summary of initial VE and waning rate from optim
-ans_by_study_parms <-  ans_by_study %>%
-  map("par") %>%
-  map_df(.id = "Study", .f = ~data.frame(A = .x[[1]], B = .x[[2]]))
-
-# save to CSV initial VE and waning rate from optim
-VE_table <- ans_by_study_parms %>%
-  mutate(`Half-life` = -log(2)/B) %>%
-  rename(VE = A, rate = B) %>%
-  mutate(VE = VE/100)
-
 # plot of VE and waning rate
 VE_plot <- ggplot(data=df) +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
-  ylim(c(0, NA)) +
-  geom_line(data= df_by_study_q, aes(x=t, y = `50%`)) +
-  geom_ribbon(data = df_by_study_q, aes(x = t, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2) +
+  geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
+                                         ymin = Min,  ymax = Max)) +
+  # ylim(c(0, NA)) +
+  # geom_line(data= df_by_study_q, aes(x=t, y = `50%`)) +
+  # geom_ribbon(data = df_by_study_q, aes(x = t, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  scale_color_brewer(palette = "Set1") +
-  guides(col = guide_legend(ncol = 2)) +
   facet_grid(.~Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  geom_text(data = ans_by_study_parms, x = 10, y = 50,
-            parse = T, aes(label = paste("VE == ", round(A,1),
-                                         "*e^{", round(B,3), "*t}"))) +
   theme(panel.grid.minor.x = element_blank())
 
 ggsave("output/S2Fig_vaccine_efficacy.png",
