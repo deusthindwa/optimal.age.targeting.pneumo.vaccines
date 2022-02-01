@@ -5,7 +5,7 @@
 
 # vaccine efficacy from published papers
 dat <- list(`Andrews et al. (2012)` = list(`0-2` = c(48, 32, 60),
-                                           `2-5` = c(21, 03, 06),
+                                           `2-5` = c(21, 03, 36),
                                            `5-Inf` = c(15, -3, 30)),
             
             `Wright et al. (2013)` = list(`0-5` = c(-9, -119, 43),
