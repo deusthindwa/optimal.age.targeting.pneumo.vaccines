@@ -20,7 +20,10 @@ dat <- list(`Andrews et al. (2012)` = list(`0-2` = c(48, 32, 60),
             
             `Djennad et al. (2018)` = list(`0-2` = c(41, 23, 54),
                                            `2-5` = c(34, 16, 48),
-                                           `5-Inf` = c(23, 12, 32)))
+                                           `5-Inf` = c(23, 12, 32)),
+            
+            # https://www.nejm.org/doi/full/10.1056/NEJMoa1408544
+            `Bonten et al. (2015)`  =  list(`0-Inf` = c(75, 41, 91)))
 
 # function to create dataset for published VE excluding Wright's paper
 dat_ <- lapply(X = dat, 
