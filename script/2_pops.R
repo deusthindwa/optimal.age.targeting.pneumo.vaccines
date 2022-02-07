@@ -15,10 +15,10 @@ pop_country <- c("Brazil" = "blue",
                  "Malawi" = "Black",
                  "South Africa" = "orange")
 
-pop_totals <- list(`England` = 16492465, # mid-2019 in 
+pop_totals <- list(`England` = 16492465, # mid-2017 in 
                    `Malawi`        = 66589, # mid-2018 pop in Blantyre
                    `South Africa`  = 6907974, # mid-2016
-                   `Brazil`        = 27734412) %>% # projected from 2011 to 2016
+                   `Brazil`        = 27734412) %>% # projected from 2011 to mid-2016
   map_df(.id = "country", ~data.frame(N = .x))
 
 #set smooth or unsmooth conditions
@@ -50,42 +50,48 @@ if (pop_smooth){
 }
 
 pop_cases <- dplyr::left_join(ipd_curves, pop_country_df, by = c("agey", "country")) %>% 
-  dplyr::mutate(cases = `50%`/1e5*ntotal, lcases = `2.5%`/1e5*ntotal, ucases = `97.5%`/1e5*ntotal, Vac.age = agey) %>% 
-  filter(serogroup != "All serotypes") 
+  dplyr::mutate(cases  = `50%`/scale*ntotal,
+                lcases = `2.5%`/scale*ntotal, 
+                ucases = `97.5%`/scale*ntotal, Vac.age = agey) %>% 
+  filter(serogroup != "All") 
 
 #plot smoothed population values
 pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
-  geom_col(aes(fill = country), width = 0.8, position = position_dodge(width = 0.8)) +
-  scale_x_continuous(breaks  = seq(55, 90, by = 5), labels  = function(x){gsub(pattern = "90", replacement = "90+", x = x)}) + 
-  scale_y_continuous(labels  = scales::percent, limits = c(0, NA)) + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(face = "bold", size = 12), axis.text.y = element_text(face = "bold", size = 12)) +
-  theme(plot.title = element_text(size = 18, margin = margin(t = 10, b = -25), hjust = 0.01)) +
-  labs(title="A", x="Age in years (y)", y=paste0("Share of ", ifelse(pop_use_totals, "total national","55y+"), " population"), color = "Countries") +
-  scale_fill_manual(values = pop_country) +
-  theme(axis.text=element_text(size=10, color="black"), legend.position = "right") +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+  geom_col(width = 0.8) +
+  scale_x_continuous(breaks  = seq(60, 90, by = 10),
+                     labels  = function(x){gsub(pattern = "90", replacement = "90+", x = x)}) + 
+  scale_y_continuous(labels  = ~scales::percent(x = ., accuracy = 1),
+                     limits  = c(0, NA)) + 
+  labs(x = "Age (years)", 
+       y = paste0("Share of ",
+                  ifelse(pop_use_totals, "total national", "55y+"),
+                  " population")) +
+  #coord_flip() +
+  facet_wrap(. ~ country) +
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
 
 #plot absolute number of cases observed from each country
-pop_burden_plot <- pop_cases %>% mutate(countryx = if_else(country == "Brazil", "B, Brazil",
-                                                          if_else(country == "England", "C, England",
-                                                                  if_else(country == "Malawi", "D, Malawi", "E, South Africa")))) %>%
+pop_burden_plot <- pop_cases %>% filter(agey <= 85) %>%
   ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
+  geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
   theme_bw() +
-  facet_wrap(countryx~., scales = "free_y", nrow = 1) + 
+  facet_wrap(~country, scales = "free_y") + 
   ylim(c(0, NA)) + 
-  scale_x_continuous(breaks = seq(55, 85, 5), limits = c(55, 85)) + 
-  labs(x = "Age (years)", y = "Absolute number of cases") +
-  theme(axis.text.x = element_text(face = "bold", size = 12), axis.text.y = element_text(face = "bold", size = 12)) +
+  #scale_x_continuous(breaks = seq(60, 90, 10), limits = c(55, 85)) + 
+  labs(x = "Age (years)", y = "Expected number of cases") +
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(legend.position = "right") +
-  theme(strip.text.x = element_text(size = 16), strip.background=element_rect(fill="white")) +
   scale_color_brewer(palette = "Dark2") + 
-  scale_fill_brewer(palette = "Dark2") + 
-  theme(strip.text.x = element_text(size = 14)) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+  scale_fill_brewer(palette  = "Dark2") 
   
 ggsave(filename = here("output","Fig1_popn_burden.png"), 
-       plot = pop_country_plot/pop_burden_plot,
+       plot = pop_country_plot + pop_burden_plot,
        width = 12, height = 6, units = "in", dpi = 300)
