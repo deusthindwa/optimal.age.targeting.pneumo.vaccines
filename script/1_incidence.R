@@ -13,7 +13,9 @@ ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
                             levels = c("All",
                                        "PPV23",
                                        "PCV20",
-                                       "PCV13")))
+                                       "PCV15",
+                                       "PCV13"))) %>% 
+  dplyr::filter(!is.na(cases))
 
 ipd %<>% nest(data = c(cases, npop)) %>%
   mutate(CI = map(.x = data, ~exactci(.x$cases, .x$npop, conf.level = 0.95)) %>%
@@ -98,8 +100,9 @@ ipd_curves %<>%
 
 #============================================================================
 
-font_add_google("Lato")
+#font_add_google("Lato")
 showtext.auto()
+quartz()
 X11()
 
 # calculate and plot scaled incidence

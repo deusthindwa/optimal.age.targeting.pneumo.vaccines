@@ -81,7 +81,7 @@ VE_B <- ggplot(VE_impact_validated, aes(x = Vac.age, y= `50%`, color = factor(ag
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
   theme(panel.grid.minor.y = element_blank())
 
-ggsave(filename = "output/Fig4_vaccine_herd_impact.png", 
+ggsave(filename = "output/Fig4_vaccine_impact_per_vaccinee.png", 
        plot = VE_B,
        width = 14, height = 8, units = "in", dpi = 300)
 
