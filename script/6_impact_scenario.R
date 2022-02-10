@@ -6,7 +6,7 @@
 # Calculate the impact of an intervention targeting 65 year olds
 # Assume coverage target of 70%
 
-coverage <- 0.7
+coverage <- 1
 
 Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
                            pop_country_df) %>%
@@ -60,16 +60,14 @@ readr::write_csv(x    = impact_65y_70pc,
 # Calculate the impact of an intervention targeting 65 year olds
 # Assume coverage target of 70%
 
-coverage <- 0.7
+coverage <- 1
 
-Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
-                           pop_country_df) %>%
+Cases <- dplyr::inner_join(unnest(ipd_mc, mc), pop_country_df) %>%
   dplyr::filter(serogroup != "All") %>%
   dplyr::mutate(cases = fit*ntotal/scale, Vac.age = agey)
 
 A65 <- VE_impact_by_age %>%
-  dplyr::filter(#serogroup == "PPV23",
-                country   == "England",
+  dplyr::filter(country   == "England",
                 Vac.age == 65) %>% 
   
   dplyr::left_join(
@@ -80,8 +78,7 @@ A65 <- VE_impact_by_age %>%
                   sim,
                   cases))
 
-impact_65y_70pc <- A65 %>%
-  #dplyr::filter(Vac.age == 65) %>%
+impact_65y <- A65 %>%
   dplyr::group_by(Waning, sim) %>%
   dplyr::mutate(value  = Impact/sum(cases),
                 Waning = sub(pattern = "\\swaning", replacement = "", x = Waning)) %>% 
@@ -101,6 +98,6 @@ impact_65y_70pc <- A65 %>%
 
 
 readr::write_csv(x    = impact_65y_70pc, 
-                 path = here("output", "impact_65y_70pc.csv"))
+                 path = here("output", "impact_65y.csv"))
 
 
