@@ -96,7 +96,10 @@ VE_time <-
                labeller = labeller(Vac.age = function(x){paste("Vacc. age:", x)})) +
   scale_fill_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
   scale_color_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
-  theme_minimal(base_family = 'Lato', base_size = 14) +
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   scale_x_continuous(limits = c(0,10), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
