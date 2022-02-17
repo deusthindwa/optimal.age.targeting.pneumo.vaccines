@@ -74,8 +74,13 @@ pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
 
+vacc_cols <- RColorBrewer::brewer.pal(6, "RdPu") %>% tail(4) %>% head(3) %>%
+  setNames(., c("PCV13", "PCV15", "PCV20")) %>%
+  c(., "PPV23" = "#0c2c84")
+
 #plot absolute number of cases observed from each country
 pop_burden_plot <- pop_cases %>% filter(agey <= 85) %>%
+  mutate(serogroup = factor(serogroup, levels = names(vacc_cols))) %>%
   ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
   geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
@@ -89,6 +94,8 @@ pop_burden_plot <- pop_cases %>% filter(agey <= 85) %>%
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(legend.position = "right") +
+  scale_color_manual(values = vacc_cols) +
+  scale_fill_manual(values = vacc_cols)
   scale_color_brewer(palette = "Dark2") + 
   scale_fill_brewer(palette  = "Dark2") 
   
