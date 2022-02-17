@@ -102,8 +102,6 @@ ipd_curves %<>%
 
 #font_add_google("Lato")
 showtext.auto()
-quartz()
-X11()
 
 # calculate and plot scaled incidence
 ipd_scaled <- ipd %>% 

@@ -5,16 +5,19 @@
 
 # load the require packages
 if (!require(pacman)){ #load packages
-  install.packages("pacman")
+    install.packages("pacman")
 }
 
 pacman::p_load(char = c("tidyverse", "here","readstata13", 
                         "scales", "boot", "magrittr",  "mvtnorm", 
                         "zoo", "patchwork", "mgcv", "PropCIs"))
 
+if (!require(pacman)){ #load packages
+    install.packages("RcmdrPlugin.KMggplot2")
+}
+
 options(stringsAsFactors = FALSE)
 setwd(here::here())
-
 
 # model incidences in each age group using 
 source(here::here("script", "1_incidence.R"))
