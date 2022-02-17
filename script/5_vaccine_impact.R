@@ -17,9 +17,9 @@ VE_impact_by_age <- VE_by_Vac.age %>%
   dplyr::summarise(Impact = sum(Impact)) %>%
   
   dplyr::mutate(Waning = dplyr::case_when(
-        Study.waning == "None"                  ~ "No waning",
-        Study.waning == "Andrews et al. (2012)" ~ "Fast waning",
-        Study.waning == "Djennad et al. (2018)" ~ "Slow waning")) 
+    Study.waning == "None"                  ~ "No waning",
+    Study.waning == "Andrews et al. (2012)" ~ "Fast waning",
+    Study.waning == "Djennad et al. (2018)" ~ "Slow waning")) 
 
 # add uncertainty to VE impact
 VE_impact_by_age_ <- VE_impact_by_age %>% 
@@ -33,7 +33,7 @@ VE_A <- ggplot(VE_impact_by_age_,
                aes(x = Vac.age, y = `50%`,
                    color = factor(age_dep),
                    group = interaction(Waning, age_dep, serogroup, country))) +
-  geom_line() + 
+  geom_line(size = 1.25) + 
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, 
                   fill = factor(age_dep)), color = NA, alpha = 0.2) +
   facet_nested(country ~ serogroup + Waning, scales = "free_y") +
@@ -49,7 +49,7 @@ VE_A <- ggplot(VE_impact_by_age_,
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(legend.position = "bottom") +
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
-  scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
+  scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")  
 
 ggsave(filename = "output/Fig3_vaccine_impact_.png", 
        plot = VE_A,
@@ -70,7 +70,7 @@ VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>%
 VE_B <- ggplot(VE_impact_validated, 
                aes(x = Vac.age, y= `50%`, color = factor(age_dep),
                    group = interaction(Waning, age_dep, serogroup, country))) +
-  geom_line() + 
+  geom_line(size = 1.25) + 
   geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, fill = factor(age_dep)),
               color = NA, alpha = 0.2) +
   facet_grid(country ~ serogroup + Waning, scales = "free_y") +
@@ -80,7 +80,7 @@ VE_B <- ggplot(VE_impact_validated,
   xlab("Vaccination Age") +
   ylab("Impact (cases averted per 100,000 older adults vaccinated)") +
   theme_bw(base_size = 14, base_family = "Lato") +
-  theme(axis.text        = element_text(face = "bold"),
+  theme(axis.text        = element_text(face = "bold", size = 10),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   # theme(axis.text=element_text(size=10, color="black")) +
@@ -89,7 +89,7 @@ VE_B <- ggplot(VE_impact_validated,
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") +
   theme(panel.grid.minor.y = element_blank())
 
-ggsave(filename = "output/Fig4_vaccine_herd_impact_.png", 
+ggsave(filename = "output/Fig4_vaccine_impact_per_vaccinee.png", 
        plot = VE_B,
        width = 14, height = 8, units = "in", dpi = 300)
 

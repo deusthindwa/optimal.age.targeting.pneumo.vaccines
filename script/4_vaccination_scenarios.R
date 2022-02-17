@@ -16,12 +16,20 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
                        TRUE      ~ 0),
     
     # age-dependent vaccine efficacy at time of vaccination may be superseded
+    serogroup == "PCV15" ~ 
+      dplyr::case_when(age_dep == FALSE ~ 1,
+                       age >= 75 ~ 0.30/0.54,
+                       age >= 65 ~ 0.36/0.54,
+                       age >= 55 ~ 0.54/0.54,
+                       TRUE    ~ NA_real_),
+    
+    # age-dependent vaccine efficacy at time of vaccination may be superseded
     serogroup == "PCV20" ~ 
       dplyr::case_when(age_dep == FALSE ~ 1,
                        age >= 75 ~ 0.30/0.54,
                        age >= 65 ~ 0.36/0.54,
                        age >= 55 ~ 0.54/0.54,
-                       TRUE      ~ 0),
+                       TRUE    ~ NA_real_),
     
     # if no age dependency, we need to just use the value from relevant study, which we can handle outside this
     serogroup == "PPV23" ~
@@ -38,7 +46,7 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
 scenarios <- crossing(Study.waning = c("Fast", "Slow"),
                       age_dep = c(FALSE, TRUE),
-                      serogroup = c("PPV23", "PCV13", "PCV20")) %>%
+                      serogroup = c("PPV23", "PCV13", "PCV15", "PCV20")) %>%
   mutate(Study.waning = case_when(Study.waning == "Slow" ~ "Djennad et al. (2018)",
                                   Study.waning == "Fast" ~ "Andrews et al. (2012)",
                                   TRUE                   ~ NA_character_)) %>%

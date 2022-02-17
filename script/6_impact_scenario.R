@@ -6,7 +6,7 @@
 # Calculate the impact of an intervention targeting 65 year olds
 # Assume coverage target of 70%
 
-coverage <- 0.7
+coverage <- 1
 
 Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
                            pop_country_df) %>%
@@ -14,11 +14,8 @@ Cases <- dplyr::inner_join(unnest(ipd_mc, mc),
   dplyr::mutate(cases = fit*ntotal/scale, Vac.age = agey)
 
 A65 <- VE_impact_by_age %>%
-  #dplyr::filter(serogroup == "PPV23",
-  #              country   == "England",
-  #              Vac.age >= 65) %>% 
-  
-  dplyr::filter(country   == "England",
+  dplyr::filter(serogroup == "PPV23",
+                country   == "England",
                 Vac.age >= 65) %>% 
   
   dplyr::left_join(
@@ -59,19 +56,19 @@ readr::write_csv(x    = impact_65y_70pc,
 
 #===============================================================================
 
+
 # Calculate the impact of an intervention targeting 65 year olds
 # Assume coverage target of 70%
 
-coverage <- 0.7
+coverage <- 1
 
-Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
-                           pop_country_df) %>%
+Cases <- dplyr::inner_join(unnest(ipd_mc, mc), pop_country_df) %>%
   dplyr::filter(serogroup != "All") %>%
   dplyr::mutate(cases = fit*ntotal/scale, Vac.age = agey)
 
 A65 <- VE_impact_by_age %>%
   dplyr::filter(country   == "England",
-                Vac.age >= 55) %>% 
+                Vac.age == 65) %>% 
   
   dplyr::left_join(
     dplyr::select(Cases,
@@ -81,18 +78,13 @@ A65 <- VE_impact_by_age %>%
                   sim,
                   cases))
 
-A65 %>%
-  dplyr::filter(Vac.age == 65) %>%
+impact_65y <- A65 %>%
   dplyr::group_by(Waning, sim) %>%
-  dplyr::mutate(value  = cases/sum(cases),
-                Waning = sub(pattern     = "\\swaning", 
-                             replacement = "", 
-                             x           = Waning)) %>% 
+  dplyr::mutate(value  = Impact/sum(cases),
+                Waning = sub(pattern = "\\swaning", replacement = "", x = Waning)) %>% 
   dplyr::select(-delay, -Impact, -cases) %>%
   tidyr::nest(data = c(sim, value)) %>%
-  dplyr::mutate(Q = purrr::map(data, 
-                               ~quantile(.x$value,
-                                         probs = c(0.025, 0.5, 0.975)))) %>%
+  dplyr::mutate(Q = purrr::map(data, ~quantile(.x$value, probs = c(0.025, 0.5, 0.975)))) %>%
   tidyr::unnest_wider(Q) %>%
   dplyr::ungroup(.) %>%
   dplyr::mutate_at(.vars =  dplyr::vars(contains("%")),
@@ -102,8 +94,10 @@ A65 %>%
                 `Age dep.` = age_dep,
                 contains("%")) %>%
   dplyr::group_by_at(.vars = dplyr::vars(-contains("%"))) %>%
-  dplyr::transmute(PropVT = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`))
+  dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`))
 
 
-readr::write_csv(x    = impact_65ye_70pc, 
-                 path = here("output", "impact_65y_70pc.csv"))
+readr::write_csv(x    = impact_65y_70pc, 
+                 path = here("output", "impact_65y.csv"))
+
+
