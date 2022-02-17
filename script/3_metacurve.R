@@ -128,7 +128,7 @@ VE_plot <- ggplot(data=df) +
   # geom_line(data= df_by_study_q, aes(x=t, y = `50%`)) +
   # geom_ribbon(data = df_by_study_q, aes(x = t, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_grid(.~Study) +
+  facet_wrap(~ Study + serogroup) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
@@ -137,5 +137,5 @@ VE_plot <- ggplot(data=df) +
 
 ggsave("output/S2Fig_vaccine_efficacy.png",
        plot = VE_plot,
-       width = 9, height = 3, unit="in", dpi = 300)
+       width = 6, height = 4.5, unit="in", dpi = 300)
 
