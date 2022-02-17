@@ -6,7 +6,7 @@
 # Calculate the impact of an intervention targeting 65 year olds
 # Assume coverage target of 70%
 
-coverage <- 1
+coverage <- 0.7 # all comments say 70% as does output CSV file
 
 Cases <- dplyr::inner_join(unnest(ipd_mc, mc), 
                            pop_country_df) %>%
@@ -33,7 +33,7 @@ impact_65y_70pc <- A65 %>%
                 Waning = sub(pattern     = "\\swaning", 
                              replacement = "", 
                              x           = Waning)) %>% 
-  dplyr::select(-delay, -Impact, -cases) %>%
+  dplyr::select(-Impact, -cases) %>%
   tidyr::nest(data = c(sim, value)) %>%
   dplyr::mutate(Q = purrr::map(data, 
                                ~quantile(.x$value,
@@ -82,7 +82,7 @@ impact_65y <- A65 %>%
   dplyr::group_by(Waning, sim) %>%
   dplyr::mutate(value  = Impact/sum(cases),
                 Waning = sub(pattern = "\\swaning", replacement = "", x = Waning)) %>% 
-  dplyr::select(-delay, -Impact, -cases) %>%
+  dplyr::select(-Impact, -cases) %>%
   tidyr::nest(data = c(sim, value)) %>%
   dplyr::mutate(Q = purrr::map(data, ~quantile(.x$value, probs = c(0.025, 0.5, 0.975)))) %>%
   tidyr::unnest_wider(Q) %>%
@@ -97,7 +97,7 @@ impact_65y <- A65 %>%
   dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`))
 
 
-readr::write_csv(x    = impact_65y_70pc, 
+readr::write_csv(x    = impact_65y, 
                  path = here("output", "impact_65y.csv"))
 
 
