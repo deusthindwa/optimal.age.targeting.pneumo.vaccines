@@ -70,7 +70,7 @@ scenarios %<>%
     Study.waning == "Djennad et al. (2018)"   & 
       grepl(pattern = 'PCV', x = serogroup) &
       t >= 5 ~ scale_initial * 23/36.8,
-    TRUE                                      ~ scale_initial))
+    TRUE     ~ scale_initial))
 
 
 VE_by_Vac.age <- 
@@ -113,6 +113,6 @@ VE_time <-
 
 ggsave(filename = "output/Fig_vaccine_effectiveness_time.png", 
        plot = VE_time,
-       width = 14, height = 8, units = "in", dpi = 300)
+       width = 12, height = 6, units = "in", dpi = 300)
 
 

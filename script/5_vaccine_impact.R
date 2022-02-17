@@ -53,7 +53,7 @@ VE_A <- ggplot(VE_impact_by_age_,
 
 ggsave(filename = "output/Fig3_vaccine_impact_.png", 
        plot = VE_A,
-       width = 14, height = 8, units = "in", dpi = 300)
+       width = 12, height = 9, units = "in", dpi = 300)
 
 #===============================================================================================
 
@@ -91,5 +91,5 @@ VE_B <- ggplot(VE_impact_validated,
 
 ggsave(filename = "output/Fig4_vaccine_impact_per_vaccinee.png", 
        plot = VE_B,
-       width = 14, height = 8, units = "in", dpi = 300)
+       width = 12, height = 9, units = "in", dpi = 300)
 
