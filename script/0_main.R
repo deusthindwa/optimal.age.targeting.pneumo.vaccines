@@ -6,11 +6,12 @@
 # load the require packages
 if (!require(pacman)){ #load packages
   install.packages("pacman")
+  install.packages("RcmdrPlugin.KMggplot2")
 }
 
 pacman::p_load(char = c("tidyverse", "here","readstata13", 
                         "scales", "boot", "magrittr",  "mvtnorm", 
-                        "zoo", "patchwork", "mgcv", "PropCIs", "ggh4x"))
+                        "zoo", "patchwork", "mgcv", "PropCIs", "showtext", "ggh4x", "RcmdrPlugin.KMggplot2"))
 
 options(stringsAsFactors = FALSE)
 setwd(here::here())

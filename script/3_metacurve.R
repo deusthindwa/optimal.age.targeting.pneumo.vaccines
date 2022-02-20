@@ -121,7 +121,7 @@ VE_plot <- ggplot(data=df) +
                                          "*e^{", round(B,3), "*t}"))) +
   theme(panel.grid.minor.x = element_blank())
 
-ggsave("output/S2Fig_vaccine_efficacy.png",
+ggsave("output/S2a_Fig_vaccine_efficacy.png",
        plot = VE_plot,
        width = 9, height = 3, unit="in", dpi = 300)
 

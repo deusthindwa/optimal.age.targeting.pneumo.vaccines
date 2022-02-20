@@ -122,7 +122,7 @@ A <-
   facet_grid(country ~ serogroup) 
 
 # combined incidence plot
-ggsave(here("output", "S1Fig_scaled_incidence.png"),
+ggsave(here("output", "S1b_Fig_scaled_incidence.png"),
        plot = A,
        width = 10, height = 8, unit="in", dpi = 300)
 
