@@ -1,7 +1,7 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # exponential decay and growth models.
-# 1/08/2021-30/09/2021
+# 31/02/2022
 
 #add empty row in VE table
 VE_table <- tibble::add_row(VE_table, Study = "None", rate = 0, `Half-life` = Inf)

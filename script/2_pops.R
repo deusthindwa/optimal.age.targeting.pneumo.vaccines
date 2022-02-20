@@ -1,7 +1,7 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # exponential decay and growth models.
-# 1/08/2021-30/09/2021
+# 31/02/2022
 
 #loaad datasets into memory
 pop_en <- read_csv(here("data", "total_pop_en.csv"))
@@ -15,10 +15,10 @@ pop_country <- c("Brazil" = "blue",
                  "Malawi" = "Black",
                  "South Africa" = "orange")
 
-pop_totals <- list(`England` = 16492465, # mid-2017 in 
+pop_totals <- list(`England` = 16492465, # mid-2017 in England
                    `Malawi`        = 66589, # mid-2018 pop in Blantyre
-                   `South Africa`  = 6907974, # mid-2016
-                   `Brazil`        = 27734412) %>% # projected from 2011 to mid-2016
+                   `South Africa`  = 6907974, # projected from 2011 to mid-2016 using Thembisa HIV model 
+                   `Brazil`        = 27734412) %>% # projected from 2011 to mid-2016 per world popn growth stats
   map_df(.id = "country", ~data.frame(N = .x))
 
 #set smooth or unsmooth conditions

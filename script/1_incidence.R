@@ -1,7 +1,7 @@
 # written by Deus Thindwa & Samuel Clifford
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # exponential decay and growth models.
-# 1/08/2021-30/12/2021
+# 31/02/2022
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
 scale = 100000
@@ -99,11 +99,6 @@ ipd_curves %<>%
             .funs = ~pmax(0, .))
 
 #============================================================================
-
-#font_add_google("Lato")
-showtext.auto()
-quartz()
-X11()
 
 # calculate and plot scaled incidence
 ipd_scaled <- ipd %>% 
