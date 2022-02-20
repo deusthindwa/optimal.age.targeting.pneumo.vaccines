@@ -11,7 +11,7 @@ if (!require(pacman)){ #load packages
 
 pacman::p_load(char = c("tidyverse", "here","readstata13", 
                         "scales", "boot", "magrittr",  "mvtnorm", 
-                        "zoo", "patchwork", "mgcv", "PropCIs", "showtext", "ggh4x", "RcmdrPlugin.KMggplot2"))
+                        "zoo", "patchwork", "mgcv", "PropCIs", "xlsx", "showtext", "ggh4x", "RcmdrPlugin.KMggplot2"))
 
 options(stringsAsFactors = FALSE)
 setwd(here::here())
