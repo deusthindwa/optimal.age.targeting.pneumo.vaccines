@@ -52,7 +52,7 @@ VE_A <- ggplot(VE_impact_by_age_,
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
 
-  ggsave(filename = "output/S4_Fig_vaccine_impact_.png", 
+  ggsave(filename = "output/S6_Fig_vaccine_impact_cohort.png", 
          plot = VE_A,
          width = 14, height = 8, units = "in", dpi = 300)
        
@@ -91,6 +91,6 @@ VE_B <- ggplot(VE_impact_validated,
   scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
 
-ggsave(filename = "output/S5_Fig_vaccine_impact_per_vaccinee.png", 
+ggsave(filename = "output/S7_Fig_vaccine_impact_vaccinee.png", 
        plot = VE_B,
        width = 14, height = 8, units = "in", dpi = 300)

@@ -39,7 +39,7 @@ B <- yrcases %>% filter(!is.na(ipd) & serogroup == "All" & agey<90) %>%
 
   
 # combined incidence plot
-ggsave(here("output", "S1a_Fig_yearly_cases.png"),
+ggsave(here("output", "S1_Fig_yearly_cases.png"),
        plot = (A | B | plot_layout(ncol = 2, width = c(4,1))),
        width = 20, height = 9, unit="in", dpi = 300)
 
