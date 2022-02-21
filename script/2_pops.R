@@ -75,7 +75,9 @@ pop_country_plot <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
 
 
 #plot absolute number of cases observed from each country
-pop_burden_plot <- pop_cases %>% filter(agey <= 85) %>%
+pop_burden_plot <- 
+  pop_cases %>% 
+  filter(agey <= 85) %>%
   ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
   geom_line() +
   geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +

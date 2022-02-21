@@ -44,8 +44,6 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
     TRUE    ~ NA_real_)
 }
 
-df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
-
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
 scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
                                    Study.VE     = "Andrews et al. (2012)"),
@@ -124,4 +122,3 @@ VE_by_Vac.age <-
     dplyr::mutate(Vaccine_Efficacy = VE*exp(rate*(1 + agey_since))) %>%
     dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
     dplyr::mutate(Impact = value*cases) 
-

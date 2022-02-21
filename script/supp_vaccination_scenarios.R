@@ -109,6 +109,6 @@ VE_time <-
   scale_x_continuous(limits = c(0,10), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
-ggsave(filename = "output/S3_Fig_vaccine_efficacy_time.png", 
+ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
        plot = VE_time,
        width = 14, height = 8, units = "in", dpi = 300)
