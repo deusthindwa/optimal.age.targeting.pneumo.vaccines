@@ -1,7 +1,7 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # exponential decay and growth models.
-# 1/08/2021-30/09/2021
+# 31/02/2022
 
 # vaccine efficacy from published papers
 dat <- list(`Andrews et al. (2012)` = list(`0-2` = c(48, 32, 60),
@@ -90,7 +90,7 @@ ans_by_study_parms_from_model <-
   transmute(value = sprintf("%0.2f (%0.2f, %0.2f)", `50%`, `2.5%`, `97.5%`)) %>%
   spread(key, value) %>%
   select(Study, `Initial efficacy` = VE, `Waning rate` = rate) %>%
-  write_csv(here("output", "initial_VE_and_waning_rates.csv"))
+  write_csv(here("output", "Table_S1_vaccine_efficacy.csv"))
 
 # summary of initial VE and waning rate from optim
 ans_by_study_parms <-  ans_by_study %>%
@@ -104,7 +104,8 @@ VE_table <- ans_by_study_parms %>%
   mutate(VE = VE/100)
 
 # plot of VE and waning rate
-VE_plot <- ggplot(data=df) +
+VE_plot <- 
+  ggplot(data=df) +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
   ylim(c(0, NA)) +
   geom_line(data= df_by_study_q, aes(x=t, y = `50%`)) +
@@ -122,7 +123,7 @@ VE_plot <- ggplot(data=df) +
                                          "*e^{", round(B,3), "*t}"))) +
   theme(panel.grid.minor.x = element_blank())
 
-ggsave("output/S2Fig_vaccine_efficacy.png",
+ggsave("output/S3_Fig_vaccine_efficacy.png",
        plot = VE_plot,
        width = 9, height = 3, unit="in", dpi = 300)
 

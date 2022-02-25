@@ -1,7 +1,7 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # exponential decay and growth models.
-# 1/08/2021-30/09/2021
+# 31/02/2022
 
 #add empty row in VE table
 VE_table <- tibble::add_row(VE_table, Study = "None", rate = 0, `Half-life` = Inf)
@@ -12,6 +12,14 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
     # age-dependent vaccine efficacy at time of vaccination may be superseded
     dplyr::case_when(
       serogroup == "PCV13" ~ 
+        dplyr::case_when(age_dep == FALSE ~ 1,
+                         age >= 75 ~ 0.30/0.54,
+                         age >= 65 ~ 0.36/0.54,
+                         age >= 55 ~ 0.54/0.54,
+                         TRUE    ~ NA_real_),
+      
+      # age-dependent vaccine efficacy at time of vaccination may be superseded
+      serogroup == "PCV15" ~ 
         dplyr::case_when(age_dep == FALSE ~ 1,
                          age >= 75 ~ 0.30/0.54,
                          age >= 65 ~ 0.36/0.54,
@@ -36,8 +44,6 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
     TRUE    ~ NA_real_)
 }
 
-df_from_study_ <- distinct(df_from_study, Study, VE, rate, sim)
-
 # create scenarios table based on initial VE values, assumptions, vaccine type and age
 scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
                                    Study.VE     = "Andrews et al. (2012)"),
@@ -50,12 +56,12 @@ scenarios <- list(`1` = data.frame(Study.waning = "Andrews et al. (2012)",
     dplyr::bind_rows(.id = "scenario") %>%
     dplyr::mutate(age_dep = scenario >= 3) %>%
     tidyr::crossing(Vac.age = seq(55, 85, by = 5), 
-                    serogroup = c("PCV13", "PCV20", "PPV23")) 
+                    serogroup = c("PCV13", "PCV15", "PCV20", "PPV23")) 
 
 # summarise scenarios by VE, serogroup, age dependency, delay, and efficacy waning
 scenarios <- expand.grid(
     data.frame(initial = c("Andrews et al. (2012)", "Djennad et al. (2018)"),
-               serogroup = c("PCV13", "PCV20", "PPV23", NA),
+               serogroup = c("PCV13", "PCV15", "PCV20", "PPV23"),
                age_dep = c(TRUE, FALSE)),
     stringsAsFactors = FALSE) %>% 
   filter(!is.na(serogroup)) %>% 
@@ -64,13 +70,14 @@ scenarios <- expand.grid(
   arrange(serogroup, age_dep) %>% 
   mutate(waning = case_when(
         initial == "Andrews et al. (2012)" ~ "Fast",
-        (serogroup == "PCV13") & initial == "Djennad et al. (2018)" ~ "None",
+        serogroup == "PCV13" & initial == "Djennad et al. (2018)" ~ "None",
+        serogroup == "PCV15" & initial == "Djennad et al. (2018)" ~ "None",
         serogroup == "PCV20" & initial == "Djennad et al. (2018)" ~ "None",
         serogroup == "PPV23" & initial == "Djennad et al. (2018)" ~ "Slow",
         TRUE ~ "Unknown")) %>%
   
-  mutate(delay = ifelse((serogroup == "PCV13" | serogroup == "PCV20") & waning == "Fast", 5, 0),
-         initial = ifelse((serogroup == "PCV13" | serogroup == "PCV20"), "Andrews et al. (2012)", initial)) %>%
+  mutate(delay = ifelse((serogroup == "PCV13" | serogroup == "PCV15" | serogroup == "PCV20") & waning == "Fast", 5, 0),
+         initial = ifelse((serogroup == "PCV13" | serogroup == "PCV15" | serogroup == "PCV20"), "Andrews et al. (2012)", initial)) %>%
   
   rename(Study.VE = initial) %>%
   mutate(Study.waning = case_when(
@@ -115,4 +122,3 @@ VE_by_Vac.age <-
     dplyr::mutate(Vaccine_Efficacy = VE*exp(rate*(1 + agey_since))) %>%
     dplyr::mutate(value = ifelse(agey < Vac.age, 0, Vaccine_Efficacy)) %>%
     dplyr::mutate(Impact = value*cases) 
-
