@@ -19,6 +19,7 @@ setwd(here::here())
 
 # model incidences in each age group using 
 source(here::here("script", "1_incidence.R"))
+source(here::here("script", "supp_incidence.R"))
 
 # plot smoothed populations for all countries
 source(here::here("script", "2_pops.R"))
