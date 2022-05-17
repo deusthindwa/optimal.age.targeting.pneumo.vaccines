@@ -1,10 +1,13 @@
 
+#================================================================
+
 # proportion of people <65y by country
 pop_country_df %>% 
   filter(agey<65) %>%
   group_by(country) %>%
   tally(p)
 
+#================================================================
 
 # total number IPD cases and proportion of cases <65y by country
 cbind (
@@ -21,6 +24,7 @@ cbind (
   ) %>%
   mutate(p = n/total)
 
+#================================================================
 
 # proportion of serotypes targeted by vaccines by country
 ipd %>% 
@@ -29,9 +33,9 @@ ipd %>%
   tally(cases) %>%
   mutate(p = n/sum(n))
 
+#================================================================
 
-# plot population, raw IPD cases, and incidence 
-# requires that incidence.R and pops.R are run
+# plot population, raw IPD cases, and incidence (requires that incidence.R and pops.R are run)
 A <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
   geom_col(width = 0.8) +
   scale_x_continuous(breaks  = seq(60, 90, by = 10),
@@ -42,7 +46,6 @@ A <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
        y = paste0("Share of ",
                   ifelse(pop_use_totals, "total national", "55y+"),
                   " population")) +
-  #coord_flip() +
   facet_grid(country ~ .) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
@@ -90,5 +93,54 @@ C <-
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
 ggsave(here("output", "Figure 1.png"),
-       plot = (A + B + C + plot_layout(ncol = 3, widths = c(1,3,3))), #G,H,I are plots from the spatial distance - Fig2b_spatially_contacts
+       plot = (A + B + C + plot_layout(ncol = 3, widths = c(1,3,3))),
        width = 20, height = 10, unit="in", dpi = 300)
+
+#================================================================
+
+# incidence rate ratios between 55y and 85y
+IncidR <- 
+  
+cbind(  
+  left_join(
+    ipd_curves %>% 
+      filter((agey == 55) & serogroup == "All") %>% 
+      group_by(country) %>%
+      dplyr::select(serogroup, country, agey, `2.5%`) %>%
+      rename("incid1" = `2.5%`),
+    
+    ipd %>% 
+      filter((agey == 55) & serogroup == "All") %>% 
+      group_by(country) %>%
+      dplyr::select(country, agey, cases, npop) %>%
+      rename("cases1" = cases, "npop1" = npop)
+    ),
+
+  left_join(
+    ipd_curves %>% 
+      filter((agey == 85) & serogroup == "All") %>% 
+      group_by(country) %>%
+      dplyr::select(serogroup, country, agey, `2.5%`) %>%
+      rename("incid2" = `2.5%`),
+    
+    ipd %>% 
+      filter((agey == 85) & serogroup == "All") %>% 
+      group_by(country) %>%
+      dplyr::select(country, agey, cases, npop)
+    ) %>%
+    rename("cases2" = cases, "npop2" = npop) %>%
+    ungroup() %>%
+    dplyr::select(incid2, cases2, npop2)
+)
+
+IncidR %>% 
+  mutate(irrsd = (1/cases1 + 1/cases2)^0.5,
+         irr = incid2/incid1,
+         irrl = irr - 1.96*irrsd,
+         irru = irr + 1.96*irrsd)
+
+
+
+
+
+

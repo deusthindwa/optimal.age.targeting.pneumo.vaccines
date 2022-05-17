@@ -94,6 +94,10 @@ pop_burden_plot <-
   scale_color_brewer(palette = "Dark2") + 
   scale_fill_brewer(palette  = "Dark2") 
   
-ggsave(filename = here("output","Fig1_popn_burden.png"), 
-       plot = pop_country_plot + pop_burden_plot,
-       width = 12, height = 6, units = "in", dpi = 300)
+#ggsave(filename = here("output","Fig1_popn_burden.png"), 
+#       plot = pop_country_plot + pop_burden_plot,
+#       width = 12, height = 6, units = "in", dpi = 300)
+
+ggsave(filename = here("output","S1_Fig_ipd_burden.png"), 
+       plot = pop_burden_plot,
+       width = 8, height = 4, units = "in", dpi = 300)

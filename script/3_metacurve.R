@@ -103,15 +103,6 @@ df_from_study <-
   unnest(newdata) %>%
   arrange(Study, sim, t, fit)
 
-# simulated VE dataset
-# df_from_study <- ans_by_study %>%
-#   map(~list(M = .x$par, V = solve(.x$hessian))) %>%
-#   map_df(~simulate_from_ans(.x, nsim = nsims, 
-#                             newdata = data.frame(t = seq(0,20))),
-#          .id = "Study") %>%
-#   rename(VE = X1, rate = X2) %>%
-#   mutate(VE = VE/100)
-
 # simulated VE dataset with mean VE and 95%CI
 df_by_study_q <- df_from_study %>%
   nest(data = -c(Study, t)) %>%
@@ -132,6 +123,36 @@ VE_plot <- ggplot(data=df) +
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(panel.grid.minor.x = element_blank())
 
-ggsave("output/S3_Fig_vaccine_efficacy.png",
+ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
        width = 9, height = 3, unit="in", dpi = 300)
+
+#===========================================================
+
+# simulated VE dataset
+df_from_studyX <- ans_by_study %>%
+  map(~list(M = .x$par, V = solve(.x$hessian))) %>%
+  map_df(~simulate_from_ans(.x, nsim = nsims, 
+                            newdata = data.frame(t = seq(0,20))),
+         .id = "Study") %>%
+  rename(VE = X1, rate = X2) %>%
+  mutate(VE = VE/100)
+
+# summary of initial VE and waning rate and 95%CI from model
+ans_by_study_parms_from_model <-
+  df_from_studyX %>%
+  distinct(Study, VE, sim, rate) %>%
+  mutate(rate = -rate) %>%
+  gather(key, value, VE, rate) %>%
+  nest(data = c(sim, value)) %>%
+  mutate(Q = map(data, ~quantile(.x$value, probs = c(0.025, 0.5, 0.975)))) %>%
+  unnest_wider(Q) %>%
+  select(-data) %>%
+  group_by(Study, key) %>%
+  transmute(value = sprintf("%0.2f (%0.2f, %0.2f)", `50%`, `2.5%`, `97.5%`)) %>%
+  spread(key, value) %>%
+  select(Study, `Initial efficacy` = VE, `Waning rate` = rate) %>%
+  write_csv(here("output", "Table_S1_vaccine_efficacy.csv"))
+
+#===========================================================
+
