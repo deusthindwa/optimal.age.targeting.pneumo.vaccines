@@ -41,3 +41,5 @@ source(here::here("script", "7_yearly_cases.R"))
 # estimate initial efficacy and waning rates (supplementary)
 source(here::here("script", "8_ipd_scaled.R"))
 
+# estimates of various stats for the results (main)
+source(here::here("script", "9_miscellaneous_estimates.R"))

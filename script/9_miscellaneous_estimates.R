@@ -92,7 +92,7 @@ C <-
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
-ggsave(here("output", "Figure 1.png"),
+ggsave(here("output", "Fig1_pop_cases_incid.png"),
        plot = (A + B + C + plot_layout(ncol = 3, widths = c(1,3,3))),
        width = 20, height = 10, unit="in", dpi = 300)
 

@@ -39,7 +39,6 @@ dat <- list(
                    `5-Inf` = c(23, 12, 32))
     ),
   
-  
   `Patterson et al. (2016)` = 
     list(
       All   = list(`0-Inf` = c(52, 22, 77)),
