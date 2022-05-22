@@ -134,3 +134,91 @@ prop_averted_cases_65y_wane <-
 
 readr::write_csv(x    = prop_averted_cases_65y_wane, 
                  path = here("output", "Table_S5_prop_averted_cases_wane.csv"))
+
+#===============================================================================
+
+# Optimal age for vaccination (individual vaccination) 55 vs 80 years old
+A80 <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
+  dplyr::rename(Vac.age = agey) %>% 
+  dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
+  mutate(Impact = Impact*scale/ntotal) %>%
+  dplyr::filter(!is.na(country) & age_dep == FALSE & Waning == "Fast waning", serogroup == "PPV23")
+
+prop_averted_cases_80y_vax <- 
+  A80 %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(country, sim) %>%
+  dplyr::mutate(rel_impact  = Impact/sum(Impact)) %>%
+  dplyr::select(-Impact) %>%
+  tidyr::nest(data = c(sim, rel_impact)) %>%
+  dplyr::mutate(Q = purrr::map(data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
+  tidyr::unnest_wider(Q) %>%
+  dplyr::ungroup(.) %>%
+  dplyr::mutate_at(.vars =  dplyr::vars(contains("%")), .funs = ~scales::percent(., 0.1)) %>%
+  dplyr::select(country, serogroup, Vac.age, Waning, `Age dep.` = age_dep, contains("%")) %>%
+  dplyr::group_by_at(.vars = dplyr::vars(-contains("%"))) %>%
+  dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`)) %>%
+  arrange(-desc(country)) %>%
+  filter(`Age dep.` == FALSE)
+
+readr::write_csv(x    = prop_averted_cases_80y_vax, 
+                 path = here("output", "Table_S6_prop_averted_cases_80y.csv"))
+
+#===============================================================================
+
+# Optimal age for vaccination (cohort vaccination + age dependent) 55 vs 65 vs 75 years old
+
+cases <- dplyr::inner_join(unnest(ipd_mc, mc), pop_country_df) %>%
+  dplyr::filter(serogroup != "All") %>%
+  dplyr::mutate(cases = fit*ntotal/scale, Vac.age = agey)
+
+A556575 <- VE_impact_by_age %>%
+  dplyr::filter(!is.na(country) & age_dep == TRUE & Waning == "Fast waning", serogroup == "PPV23") %>% 
+  dplyr::left_join(dplyr::select(cases, serogroup, Vac.age, country, sim, cases))
+
+prop_averted_cases_556575y_vax <- 
+  A556575 %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(country, sim) %>%
+  dplyr::mutate(rel_impact  = Impact/sum(Impact)) %>%
+  dplyr::select(-Impact, -cases) %>%
+  tidyr::nest(data = c(sim, rel_impact)) %>%
+  dplyr::mutate(Q = purrr::map(data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
+  tidyr::unnest_wider(Q) %>%
+  dplyr::ungroup(.) %>%
+  dplyr::mutate_at(.vars =  dplyr::vars(contains("%")), .funs = ~scales::percent(., 0.1)) %>%
+  dplyr::select(country, serogroup, Vac.age, Waning, `Age dep.` = age_dep, contains("%")) %>%
+  dplyr::group_by_at(.vars = dplyr::vars(-contains("%"))) %>%
+  dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`)) %>%
+  arrange(-desc(country)) 
+
+readr::write_csv(x    = prop_averted_cases_556575y_vax, 
+                 path = here("output", "Table_S7_prop_averted_cases_55_65_75y.csv"))
+
+#===============================================================================
+
+# Optimal age for vaccination (individual vaccination + age depenndent) 55 vs 65 vs 75 years old
+A556575 <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
+  dplyr::rename(Vac.age = agey) %>% 
+  dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
+  mutate(Impact = Impact*scale/ntotal) %>%
+  dplyr::filter(!is.na(country) & age_dep == TRUE & Waning == "Fast waning", serogroup == "PPV23")
+
+prop_averted_cases_556575y_vax <- 
+  A556575 %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(country, sim) %>%
+  dplyr::mutate(rel_impact  = Impact/sum(Impact)) %>%
+  dplyr::select(-Impact) %>%
+  tidyr::nest(data = c(sim, rel_impact)) %>%
+  dplyr::mutate(Q = purrr::map(data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
+  tidyr::unnest_wider(Q) %>%
+  dplyr::ungroup(.) %>%
+  dplyr::mutate_at(.vars =  dplyr::vars(contains("%")), .funs = ~scales::percent(., 0.1)) %>%
+  dplyr::select(country, serogroup, Vac.age, Waning, `Age dep.` = age_dep, contains("%")) %>%
+  dplyr::group_by_at(.vars = dplyr::vars(-contains("%"))) %>%
+  dplyr::transmute(Impact = sprintf("%s (%s, %s)", `50%`, `2.5%`, `97.5%`)) %>%
+  arrange(-desc(country))
+
+readr::write_csv(x    = prop_averted_cases_556575y_vax, 
+                 path = here("output", "Table_S8_prop_averted_cases_55_65_57y_vax.csv"))
