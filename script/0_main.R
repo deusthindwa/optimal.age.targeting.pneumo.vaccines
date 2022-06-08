@@ -33,7 +33,7 @@ source(here::here("script", "4_vaccination_scenarios.R"))
 source(here::here("script", "5_vaccine_impact.R"))
 
 # compute isolated impact scenarios (supplementary)
-source(here::here("script", "6_impact scenario.R"))
+source(here::here("script", "6_impact_scenario.R"))
 
 # make plots on raw IPD data from various countries (supplementary)
 source(here::here("script", "7_yearly_cases.R"))
