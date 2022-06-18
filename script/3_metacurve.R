@@ -115,16 +115,17 @@ VE_plot <- ggplot(data=df) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_grid(.~Study) +
+  facet_wrap( ~ serogroup + Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(panel.grid.minor.x = element_blank())
+  theme(panel.grid.minor.x = element_blank()) +
+  ylim(c(NA,100))
 
 ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
-       width = 9, height = 3, unit="in", dpi = 300)
+       width = 9, height = 6, unit="in", dpi = 300)
 
 #===========================================================
 
