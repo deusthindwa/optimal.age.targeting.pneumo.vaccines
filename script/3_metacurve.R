@@ -72,7 +72,8 @@ f <- function(parms, df){
 
 # simulating exponential decay model to compute mean VE and 95%CIs
 ans_by_study <- df %>% 
-  split(.$Study) %>% 
+  group_by(Study, serogroup) %>%
+  group_split %>%
   map(~optim(par = c(50, -0.5), fn = f, df = .x, hessian = TRUE)) 
 
 simulate_from_ans <- function(x, nsim = 1e4, newdata){
@@ -91,7 +92,7 @@ df_from_study <-
   filter(!grepl('Wright', Study)) %>%
   mutate(sd = (Max - Min)/2/1.96,
          xmax = xmax - 0.5)  %>%
-  nest(data = -c(Study, xmin, xmax)) %>%
+  nest(data = -c(Study, serogroup, xmin, xmax)) %>%
   mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 50))))) %>%
   mutate(newdata = map(.x = newdata, ~crossing(sim = 1:nsims, .x))) %>%
   mutate(newdata = map2(.x = newdata, .y = data,
@@ -103,8 +104,9 @@ df_from_study <-
   arrange(Study, sim, t, fit)
 
 # simulated VE dataset with mean VE and 95%CI
+# not used
 df_by_study_q <- df_from_study %>%
-  nest(data = -c(Study, t)) %>%
+  nest(data = -c(Study, serogroup, t)) %>%
   mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
   select(-data)
