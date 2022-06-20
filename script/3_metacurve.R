@@ -154,7 +154,7 @@ ans_by_study_parms_from_model <-
   transmute(value = sprintf("%0.2f (%0.2f, %0.2f)", `50%`, `2.5%`, `97.5%`)) %>%
   spread(key, value) %>%
   select(Study, `Initial efficacy` = VE, `Waning rate` = rate) %>%
-  write_csv(here("output", "Table_S1_vaccine_efficacy.csv"))
+  write_csv("output/Table_S1_vaccine_efficacy.csv")
 
 #===========================================================
 

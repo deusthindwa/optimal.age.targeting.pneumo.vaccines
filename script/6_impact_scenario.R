@@ -15,10 +15,11 @@ A5570 <- VE_impact_by_age %>%
   dplyr::filter(!is.na(country) & age_dep == FALSE & Waning == "Fast waning", serogroup == "PPV23") %>% 
   dplyr::left_join(dplyr::select(cases, serogroup, Vac.age, country, sim, cases))
 
+# turn into a function
 prop_averted_cases_5570y_vax <- 
   A5570 %>%
-  dplyr::ungroup() %>%
-  dplyr::group_by(country, sim) %>%
+  dplyr::ungroup(.) %>%
+  dplyr::group_by(country, sim, age_dep, Study.waning, serogroup, Waning) %>%
   dplyr::mutate(rel_impact  = Impact/sum(Impact)) %>%
   dplyr::select(-Impact, -cases) %>%
   tidyr::nest(data = c(sim, rel_impact)) %>%
@@ -33,7 +34,7 @@ prop_averted_cases_5570y_vax <-
   filter(`Age dep.` == FALSE)
 
 readr::write_csv(x    = prop_averted_cases_5570y_vax, 
-                 path = here("output", "Table_S2_prop_averted_cases_55_70y.csv"))
+                 path = "output/Table_S2_prop_averted_cases_55_70y.csv")
 
 #===============================================================================
 
@@ -65,7 +66,7 @@ prop_averted_cases_65y_vax <-
   filter(`Age dep.` == FALSE)
 
 readr::write_csv(x    = prop_averted_cases_65y_vax, 
-                 path = here("output", "Table_S3_prop_averted_cases_65y.csv"))
+                 path = "output/Table_S3_prop_averted_cases_65y.csv")
 
 #===============================================================================
 
@@ -97,7 +98,7 @@ prop_averted_cases_65y_wane <-
   filter(`Age dep.` == FALSE)
 
 readr::write_csv(x    = prop_averted_cases_65y_wane, 
-                 path = here("output", "Table_S4_prop_averted_cases_wane.csv"))
+                 path = "output/Table_S4_prop_averted_cases_wane.csv")
 
 #===============================================================================
 
@@ -106,13 +107,15 @@ A80 <- dplyr::select(pop_country_df, country, agey, ntotal) %>%
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
   mutate(Impact = Impact*scale/ntotal) %>%
-  dplyr::filter(!is.na(country) & age_dep == FALSE & Waning == "Fast waning", serogroup == "PPV23")
+  dplyr::filter(!is.na(country) & age_dep == FALSE & Waning == "Fast waning", serogroup == "PPV23",
+                Vac.age %in% c(55, 85))
 
 prop_averted_cases_80y_vax <- 
   A80 %>%
   dplyr::ungroup() %>%
+  select(-ntotal) %>%
   dplyr::group_by(country, sim) %>%
-  dplyr::mutate(rel_impact  = Impact/sum(Impact)) %>%
+  dplyr::mutate(rel_impact = Impact/)
   dplyr::select(-Impact) %>%
   tidyr::nest(data = c(sim, rel_impact)) %>%
   dplyr::mutate(Q = purrr::map(data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
@@ -126,7 +129,7 @@ prop_averted_cases_80y_vax <-
   filter(`Age dep.` == FALSE)
 
 readr::write_csv(x    = prop_averted_cases_80y_vax, 
-                 path = here("output", "Table_S5_prop_averted_cases_80y.csv"))
+                 path = "output/Table_S5_prop_averted_cases_80y.csv")
 
 #===============================================================================
 
@@ -157,7 +160,7 @@ prop_averted_cases_556575y_vax <-
   arrange(-desc(country)) 
 
 readr::write_csv(x    = prop_averted_cases_556575y_vax, 
-                 path = here("output", "Table_S6_prop_averted_cases_55_65_75y.csv"))
+                 path = "output/Table_S6_prop_averted_cases_55_65_75y.csv")
 
 #===============================================================================
 
@@ -185,4 +188,4 @@ prop_averted_cases_556575y_vax <-
   arrange(-desc(country))
 
 readr::write_csv(x    = prop_averted_cases_556575y_vax, 
-                 path = here("output", "Table_S7_prop_averted_cases_55_65_57y_vax.csv"))
+                 path = "output/Table_S7_prop_averted_cases_55_65_57y_vax.csv")

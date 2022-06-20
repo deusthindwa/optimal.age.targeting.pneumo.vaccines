@@ -4,10 +4,10 @@
 # 31/02/2022
 
 #loaad datasets into memory
-pop_en <- read_csv(here("data", "total_pop_en.csv"))
-pop_mw <- read_csv(here("data", "total_pop_mw.csv"))
-pop_sa <- read_csv(here("data", "total_pop_sa.csv"))
-pop_br <- read_csv(here("data", "total_pop_br.csv"))
+pop_en <- read_csv("data/total_pop_en.csv")
+pop_mw <- read_csv("data/total_pop_mw.csv")
+pop_sa <- read_csv("data/total_pop_sa.csv")
+pop_br <- read_csv("data/total_pop_br.csv")
 
 #ggplot comparing % populations in England/Wales versus UN SDG regions
 pop_country <- c("Brazil" = "blue",
@@ -94,10 +94,10 @@ pop_burden_plot <-
   scale_color_brewer(palette = "Dark2") + 
   scale_fill_brewer(palette  = "Dark2") 
   
-#ggsave(filename = here("output","Fig1_popn_burden.png"), 
+#ggsave(filename = "output/Fig1_popn_burden.png", 
 #       plot = pop_country_plot + pop_burden_plot,
 #       width = 12, height = 6, units = "in", dpi = 300)
 
-ggsave(filename = here("output","S2_Fig_ipd_burden.png"), 
+ggsave(filename = "output/S2_Fig_ipd_burden.png", 
        plot = pop_burden_plot,
        width = 8, height = 4, units = "in", dpi = 300)
