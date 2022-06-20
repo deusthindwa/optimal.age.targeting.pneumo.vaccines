@@ -115,7 +115,7 @@ prop_averted_cases_80y_vax <-
   dplyr::ungroup() %>%
   select(-ntotal) %>%
   dplyr::group_by(country, sim) %>%
-  dplyr::mutate(rel_impact = Impact/)
+  dplyr::mutate(rel_impact = Impact/sum(Impact))
   dplyr::select(-Impact) %>%
   tidyr::nest(data = c(sim, rel_impact)) %>%
   dplyr::mutate(Q = purrr::map(data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%

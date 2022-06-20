@@ -15,18 +15,26 @@ VE_impact_by_age <- VE_by_Vac.age %>%
                     country) %>%
     
     dplyr::summarise(Impact = sum(Impact)) %>%
-    
-    dplyr::mutate(Waning = dplyr::case_when(
-        Study.waning == "None"                  ~ "No waning",
-        Study.waning == "Andrews et al. (2012)" ~ "Fast waning",
-        Study.waning == "Djennad et al. (2018)" ~ "Slow waning")) 
+    ungroup %>%
+    dplyr::mutate(Waning = sub(pattern     = "None", 
+                               replacement = "No waning",
+                               x           = Study.waning),
+                  Waning = sub(pattern     = "Andrews et al. (2012)",
+                               replacement = "Fast waning",
+                               x           = Waning),
+                  Waning = sub(pattern     = "Djennad et al. (2018)",
+                               replacement = "Slow waning", 
+                               x           = Waning))
+
 
 # add uncertainty to VE impact
 VE_impact_by_age_ <- VE_impact_by_age %>% 
     filter(!is.na(Impact)) %>%
     nest(data = c(sim, Impact)) %>%
-    mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
-    unnest_wider(Q)
+    mutate(Q = map(data, ~quantile(x     = .x$Impact,
+                                   probs = c(0.025, 0.5, 0.975)))) %>%
+    unnest_wider(Q) %>%
+    select(-data)
 
 
 make_grid_plot <- function(x, ylab = NULL, percent = FALSE, ylim = c(0,NA)){
@@ -86,7 +94,6 @@ VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>%
     unnest_wider(Q)
 
 #impact per 10000 older adults vaccinated
-
 VE_B <- make_grid_plot(x = VE_impact_validated, 
                        ylab = "Impact (cases averted per 100,000 vaccinees)")  
 
