@@ -90,26 +90,31 @@ impact_scenarios <- scenarios %>%
     {map(.x = ., ~inner_join(VE_impact_by_age, .x$filter) %>%
              na.omit %>%
              dplyr::left_join(dplyr::select(cases, serogroup, Vac.age, country, sim, cases)) %>%
-             make_averted_cases(grouping_vars = .x$grouping_vars))} %>%
-    bind_rows(.id = 'Scenario')
+             make_averted_cases(grouping_vars = .x$grouping_vars))} 
+
+# this probably needs a better naming scheme
+impact_scenarios %>%
+    {map2(.x = ., .y = names(.),
+          ~write_csv(x = .x,
+                     file = sprintf("output/scenario %s.csv", .y)))}
 
 # 55-70
-readr::write_csv(x    = prop_averted_cases_5570y_vax, 
-                 path = "output/Table_S2_prop_averted_cases_55_70y.csv")
+# readr::write_csv(x    = prop_averted_cases_5570y_vax, 
+#                  path = "output/Table_S2_prop_averted_cases_55_70y.csv")
 
 #===============================================================================
 
 # Optimal age for vaccination (cohort vaccination) PCV20 vs PPV23
 # 65
-readr::write_csv(x    = prop_averted_cases_65y_vax, 
-                 path = "output/Table_S3_prop_averted_cases_65y.csv")
+# readr::write_csv(x    = prop_averted_cases_65y_vax, 
+#                  path = "output/Table_S3_prop_averted_cases_65y.csv")
 
 #===============================================================================
 
 # Optimal age for vaccination (cohort vaccination) fast vs slow waning
 # 65 waning
-readr::write_csv(x    = prop_averted_cases_65y_wane, 
-                 path = "output/Table_S4_prop_averted_cases_wane.csv")
+# readr::write_csv(x    = prop_averted_cases_65y_wane, 
+#                  path = "output/Table_S4_prop_averted_cases_wane.csv")
 
 #===============================================================================
 
