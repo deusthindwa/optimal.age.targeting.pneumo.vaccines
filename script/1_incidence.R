@@ -4,7 +4,7 @@
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
 scale = 100000
-ipd <- readr::read_csv(here("data", "total_incidence.csv")) %>%
+ipd <- readr::read_csv("data/total_incidence.csv") %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scale) %>%
   mutate(serogroup = ifelse(serogroup == "All serotypes", "All", serogroup)) %>%
@@ -119,7 +119,7 @@ ipd_curves %<>%
 #         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 # 
 # # combined incidence plot
-# ggsave(here("output", "Fig2_ipd_incidence.png"),
+# ggsave("output/Fig2_ipd_incidence.png",
 #        plot = A,
 #        width = 10, height = 8, unit="in", dpi = 300)
 # 

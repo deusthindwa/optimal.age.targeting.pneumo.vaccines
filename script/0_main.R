@@ -13,32 +13,30 @@ pacman::p_load(char = c("tidyverse", "here","readstata13",
                         "zoo", "patchwork", "mgcv", "PropCIs", "showtext", "ggh4x"))
 
 options(stringsAsFactors = FALSE)
-setwd(here::here())
-
 
 # model incidences in each age group using (main)
-source(here::here("script", "1_incidence.R"))
+source("script/1_incidence.R")
 
 # plot smoothed populations for all countries (main)
-source(here::here("script", "2_pops.R"))
+source("script/2_pops.R")
 
 # estimate initial efficacy and waning rates (supplementary)
-source(here::here("script", "3_metacurve.R"))
+source("script/3_metacurve.R")
 
 # generate scenarios by serogroup, country, VE, age and waning (supplementary)
-source(here::here("script", "4_vaccination_scenarios.R"))
+source("script/4_vaccination_scenarios.R")
 
 # compute vaccine impact, cases averted (main)
-source(here::here("script", "5_vaccine_impact.R"))
+source("script/5_vaccine_impact.R")
 
 # compute isolated impact scenarios (supplementary)
-source(here::here("script", "6_impact_scenario.R"))
+source("script/6_impact_scenario.R")
 
 # make plots on raw IPD data from various countries (supplementary)
-source(here::here("script", "7_yearly_cases.R"))
+source("script/7_yearly_cases.R")
 
 # estimate initial efficacy and waning rates (supplementary)
-source(here::here("script", "8_ipd_scaled.R"))
+source("script/8_ipd_scaled.R")
 
 # estimates of various stats for the results (main)
-source(here::here("script", "9_miscellaneous_estimates.R"))
+source("script/9_miscellaneous_estimates.R")

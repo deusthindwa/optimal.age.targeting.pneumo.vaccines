@@ -99,3 +99,4 @@ VE_plot <- ggplot(data=df) +
 ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
        width = 9, height = 6, unit="in", dpi = 300)
+
