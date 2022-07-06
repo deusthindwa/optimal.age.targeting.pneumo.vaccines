@@ -1,4 +1,4 @@
-# written by Deus Thindwa & Samuel Clifford
+# written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # 31/02/2022
 

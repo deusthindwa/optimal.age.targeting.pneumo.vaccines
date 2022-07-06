@@ -23,11 +23,12 @@ VE_impact_by_age <- VE_by_Vac.age %>%
                                x           = Waning),
                   Waning = sub(pattern     = "Djennad et al. (2018)",
                                replacement = "Slow waning", 
-                               x           = Waning))
+                               x           = Waning)) %>%
+  mutate(Waning = if_else(Waning == "Andrews et al. (2012)", "Fast waning", "Slow waning"))
 
 
 # add uncertainty to VE impact
-VE_impact_by_age_ <- VE_impact_by_age %>% 
+VE_impact_by_age_ <- VE_impact_by_age %>%
     filter(!is.na(Impact)) %>%
     nest(data = c(sim, Impact)) %>%
     mutate(Q = map(data, ~quantile(x     = .x$Impact,
@@ -83,16 +84,16 @@ ggsave(filename = "output/Fig2_vaccine_impact_cohort.png",
 
 #===============================================================================================
 
-# vaccine impact per 10000 older adults
+#vaccine impact per 100,000 older adults vaccinated from specific age cohort (ntotal)
 VE_impact_validated <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
     dplyr::rename(Vac.age = agey) %>% 
     dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
-    mutate(Impact = Impact*scale/ntotal) %>%
+    mutate(Impact = Impact/ntotal*scale) %>%
     nest(data = c(sim, Impact)) %>%
     mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
     unnest_wider(Q)
 
-#impact per 10000 older adults vaccinated
+#impact per 100,000 older adults vaccinated from specific age cohort (ntotal)
 VE_B <- make_grid_plot(x = VE_impact_validated, 
                        ylab = "Impact (cases averted per 100,000 vaccinees)")  
 
@@ -123,6 +124,17 @@ impact_per_case <- ipd_mc %>%
     mutate(Q = map(.x = data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
     unnest_wider(Q)
 
+plot_impact_per_case <- 
+  make_grid_plot(x    = impact_per_case,  percent = TRUE,
+                 ylab = "Vaccine impact (proportion of cases averted among vaccinees)")
+
+ggsave(filename = "output/vaccine_impact_per_case.png", 
+       plot = plot_impact_per_case,
+       width = 14, height = 8, units = "in", dpi = 300)
+
+#===============================================================================================
+
+#vaccine impact per 100,000 total population 55+y (pop)
 impact_per_vaccinee <- 
     
     # get the population over 55, 60, etc. as potential vaccinees
@@ -135,21 +147,12 @@ impact_per_vaccinee <-
     # merge with Impact data (averted cases, absolute)
     inner_join(VE_impact_by_age) %>%
     
-    # relative impact is per 100,000
+    # relative impact is per 100,000 total population 55+y
     mutate(rel_impact = Impact/pop*scale) %>%
     group_by_at(.vars = vars(-c(sim, pop, Impact, rel_impact))) %>%
     nest %>%
     mutate(Q = map(.x = data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
     unnest_wider(Q)
-
-
-plot_impact_per_case <- 
-    make_grid_plot(x    = impact_per_case,  percent = TRUE,
-                   ylab = "Vaccine impact (proportion of cases averted among vaccinees)")
-
-ggsave(filename = "output/vaccine_impact_per_case.png", 
-       plot = plot_impact_per_case,
-       width = 14, height = 8, units = "in", dpi = 300)
 
 plot_impact_per_vaccinee <- 
     make_grid_plot(x    = impact_per_vaccinee, 
