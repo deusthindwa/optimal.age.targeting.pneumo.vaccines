@@ -95,7 +95,7 @@ impact_scenarios <- scenarios %>%
 impact_scenarios %>%
     {map2(.x = ., .y = names(.),
           ~write_csv(x = .x,
-                     file = sprintf("output/scenario %s.csv", .y)))}
+                     path = sprintf("output/scenario %s.csv", .y)))}
 
 # 55-70
 # readr::write_csv(x    = prop_averted_cases_5570y_vax, 
