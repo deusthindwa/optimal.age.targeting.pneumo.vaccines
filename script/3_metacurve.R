@@ -13,12 +13,12 @@ dat <- list(
                    `5-Inf` = c(15, -3, 30))
     ),
   
-  `Wright et al. (2013)` = 
-    list(
-      PPV23 = list(`0-5` = c(-9, -119, 43),
-                   `5-10` = c(38.3, -6, 64),
-                   `10-Inf` = c(-21, -137, 35))
-    ),
+  # `Wright et al. (2013)` = 
+  #   list(
+  #     PPV23 = list(`0-5` = c(-9, -119, 43),
+  #                  `5-10` = c(38.3, -6, 64),
+  #                  `10-Inf` = c(-21, -137, 35))
+  #   ),
   
   `Rudnick et al. (2013)` = 
     list(
@@ -49,18 +49,22 @@ dat <- list(
 # function to create dataset for published VE excluding Wright's paper
 dat_ <- lapply(X = dat, 
                FUN = function(x){
-                 map(x,~map_df(.x, ~set_names(.x, c("Mean", "Min", "Max")), .id = "Ages"))
+                 map(x,~map_df(.x, ~set_names(.x, c("Mean", "Min", "Max")), 
+                               .id = "Ages"))
                }) %>%
   map_df(~bind_rows(.x, .id = "serogroup"), .id = "Study") %>%
   separate(Ages, into = c("xmin", "xmax")) %>%
   mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-  mutate(xmax = ifelse(is.na(xmax), 20, xmax))
+  mutate(xmax = ifelse(is.na(xmax), 60, xmax))
 
-df <- dat_ %>% filter(Study != "Wright et al. (2013)") %>% rename(y = "Mean")
+df <- dat_ %>% 
+  # filter(Study != "Wright et al. (2013)") %>%
+  rename(y = "Mean")
+
 
 df_from_study <- 
   dat_ %>%
-  filter(!grepl('Wright', Study)) %>%
+  #filter(!grepl('Wright', Study)) %>%
   mutate(sd = (Max - Min)/2/1.96,
          xmax = xmax - 0.5)  %>%
   nest(data = -c(Study, serogroup, xmin, xmax)) %>%
