@@ -54,8 +54,8 @@ dat_ <- lapply(X = dat,
                }) %>%
   map_df(~bind_rows(.x, .id = "serogroup"), .id = "Study") %>%
   separate(Ages, into = c("xmin", "xmax")) %>%
-  mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-  mutate(xmax = ifelse(is.na(xmax), 60, xmax))
+  mutate_at(.vars = vars(xmin, xmax), .funs = parse_integer) %>%
+  mutate(xmax = ifelse(is.na(xmax), 60L, xmax))
 
 source('script/3_metacurve_synthesis.R')
 

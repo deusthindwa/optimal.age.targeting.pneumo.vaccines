@@ -45,8 +45,8 @@ scenarios <- crossing(age_dep = c(FALSE, TRUE),
                       serogroup = c("PPV23", "PCV13", "PCV15", "PCV20")) %>%
   mutate(serogroup_VE = ifelse(serogroup == "PCV13", "PCV13", "All")) %>%
   
-  crossing(Vac.age = seq(55, 85, by = 5),
-           age     = seq(55, 85, by = 1)) %>%
+  crossing(Vac.age = seq(55L, 85L, by = 5L),
+           age     = seq(55L, 85L, by = 1L)) %>%
   mutate(t     = age - Vac.age) %>%
   mutate(scale_initial = initial_VE(Vac.age, serogroup, age_dep),
          scale_initial = ifelse(t < 0, 0, scale_initial))
@@ -54,19 +54,20 @@ scenarios <- crossing(age_dep = c(FALSE, TRUE),
 
 VE_by_Vac.age <- 
   scenarios %>%
-  inner_join(select(df_from_study, t, serogroup_VE,
-                    fit, sim)) %>% # get initial waning
-  mutate(VE = fit/100 * scale_initial) 
+  inner_join(select(df_from_study, 
+                    -xmin, -xmax)) %>% # get initial waning
+  mutate(VE = fit/100 * scale_initial)  %>%
+  select(-scale_initial)
 
 VE_by_Vac.age <- pop_cases %>%
-  select(serogroup, country, age = agey, cases, Vac.age)  %>%
-  right_join(VE_by_Vac.age) %>%
+  select(serogroup, country, age = agey, cases)  %>%
+  {left_join(VE_by_Vac.age, .)} %>%
   dplyr::mutate(Impact = VE*cases)
 
 VE_time <- 
   VE_by_Vac.age %>%
   filter(Vac.age %in% c(55, 65, 75)) %>%
-  select(-scale_initial, -fit) %>%
+  select(-fit) %>%
   nest(data = c(sim, VE, Impact)) %>%
   mutate(Q = map(data, ~quantile(.x$VE, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
