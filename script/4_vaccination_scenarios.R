@@ -64,6 +64,11 @@ VE_by_Vac.age <- pop_cases %>%
   {left_join(VE_by_Vac.age, .)} %>%
   dplyr::mutate(Impact = VE*cases)
 
+vac_labeller <- 
+  labeller(Vac.age      = function(x){paste("Vacc. age:", x)},
+           serogroup_VE = function(x){paste("Waning:", x)})
+
+
 VE_time <- 
   VE_by_Vac.age %>%
   filter(Vac.age %in% c(55, 65, 75)) %>%
@@ -81,8 +86,7 @@ VE_time <-
                                          color = NA, alpha = 0.2) +
   geom_step(aes(color = age_dep)) + 
   facet_nested(Vac.age ~ serogroup_VE  + serogroup, nest_line = T,
-               labeller = labeller(Vac.age      = function(x){paste("Vacc. age:", x)},
-                                   serogroup_VE = function(x){paste("Waning:", x)})) +
+               labeller = vac_labeller) +
   scale_fill_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
   scale_color_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
   theme_bw(base_size = 14, base_family = "Lato") +
