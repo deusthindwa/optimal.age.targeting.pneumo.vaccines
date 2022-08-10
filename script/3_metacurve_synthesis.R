@@ -11,9 +11,9 @@ waning_rate <- dat_ %>%
   mutate(t = gsub(x= t, pattern = "(\\[|\\]|\\)|\\()", 
                   replacement = "")) %>%
   separate(t, into = c('xmin', 'xmax'), sep = ",") %>%
-  mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-  distinct %>%
-  mutate(xmax = ifelse(is.na(xmax), Inf, xmax)) 
+  mutate_at(.vars = vars(xmin, xmax), 
+            .funs = ~ifelse(. == "Inf", Inf, parse_number(.))) %>%
+  distinct 
 
 waning_rate <- waning_rate %>% 
   ungroup %>%
