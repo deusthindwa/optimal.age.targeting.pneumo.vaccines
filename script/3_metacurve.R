@@ -57,17 +57,19 @@ dat_ <- lapply(X = dat,
   mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
   mutate(xmax = ifelse(is.na(xmax), 60, xmax))
 
-df <- dat_ %>% 
-  # filter(Study != "Wright et al. (2013)") %>%
-  rename(y = "Mean")
+source('script/3_metacurve_synthesis.R')
+
+# df <- dat_ %>% 
+#   # filter(Study != "Wright et al. (2013)") %>%
+#   rename(y = "Mean")
 
 
 df_from_study <- 
-  dat_ %>%
+  VE_meta %>%
   #filter(!grepl('Wright', Study)) %>%
   mutate(sd = (Max - Min)/2/1.96,
          xmax = xmax - 0.5)  %>%
-  nest(data = -c(Study, serogroup, xmin, xmax)) %>%
+  nest(data = -c(serogroup_VE, xmin, xmax)) %>%
   mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 50))))) %>%
   mutate(newdata = map(.x = newdata, ~crossing(sim = 1:nsims, .x))) %>%
   mutate(newdata = map2(.x = newdata, .y = data,
@@ -76,82 +78,66 @@ df_from_study <-
                                                      sd   = .y$sd)))) %>%
   select(-data) %>%
   unnest(newdata) %>%
-  arrange(Study, sim, t, fit)
+  arrange(sim, t, fit)
 
 
 
 df_from_study_meta <-
   df_from_study %>%
-  filter(Study != "Patterson et al. (2016)") %>%
-  select(Study, serogroup, sim, t, fit) %>%
+  select(serogroup_VE, sim, t, fit) %>%
   mutate(t = cut(t, c(0, 2, 5, Inf),
                  include.lowest = T)) %>%
-  group_by(serogroup, t, sim) %>%
+  group_by(serogroup_VE, t, sim) %>%
   summarise(fit = mean(fit)) %>%
-  group_by(serogroup, t) %>%
+  group_by(serogroup_VE, t) %>%
   summarise(y = mean(fit),
             Min = quantile(fit, 0.025),
             Max = quantile(fit, 0.975)) %>%
   ungroup %>%
-    mutate(t = gsub(x= t, pattern = "(\\[|\\]|\\)|\\()", 
-                    replacement = "")) %>%
+  mutate(t = gsub(x= t, pattern = "(\\[|\\]|\\)|\\()", 
+                  replacement = "")) %>%
   separate(t, into = c('xmin', 'xmax'), sep = ",") %>%
-    mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-    mutate(xmax = ifelse(is.na(xmax), 60, xmax)) 
+  mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
+  mutate(xmax = ifelse(is.na(xmax), 60, xmax)) 
 
 ggplot(df_from_study_meta) +
-geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
-  geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
-                                         ymin = Min,  ymax = Max)) +
-  labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_wrap( ~ serogroup) +
-  theme_bw(base_size = 14, base_family = "Lato") +
-  theme(axis.text        = element_text(face = "bold"),
-        strip.background = element_rect(fill = "white"),
-        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(panel.grid.minor.x = element_blank()) +
-  ylim(c(NA,100))
-
-df_from_study_meta %>%
-  ggplot(data=.) +
-  geom_line(aes(y = y, x = t)) +
-  geom_ribbon(aes(ymin= Min, ymax = Max, x = t), alpha = 0.1) +
-  # geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
-  # geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
-  #                                        ymin = Min,  ymax = Max)) +
-  labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_wrap( ~ serogroup) +
-  theme_bw(base_size = 14, base_family = "Lato") +
-  theme(axis.text        = element_text(face = "bold"),
-        strip.background = element_rect(fill = "white"),
-        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(panel.grid.minor.x = element_blank()) 
-
-
-
-# plot of VE and waning rate
-VE_plot <- ggplot(data=df) +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
-  geom_segment(data = df_from_study_meta,
-               lty = 2,
-               aes(x=xmin, xend = xmax, y = y, yend = y),
-               color = 'forestgreen') +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
-  geom_rect(data = df_from_study_meta,
-            color = NA, alpha = 0.1, aes(xmin = xmin, xmax = xmax,
-                                         ymin = Min,  ymax = Max),
-            fill = "forestgreen") +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_wrap( ~ serogroup + Study) +
+  facet_wrap( ~ serogroup_VE) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(panel.grid.minor.x = element_blank()) +
-  ylim(c(NA,100))
+  coord_cartesian(xlim = c(0, 20), ylim = c(0, 100))
 
-ggsave("output/S4_Fig_vaccine_efficacy.png",
-       plot = VE_plot,
-       width = 9, height = 6, unit="in", dpi = 300)
+
+# 
+# # plot of VE and waning rate
+# VE_plot <- ggplot(data=df) +
+#   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
+#   geom_segment(data = df_from_study_meta,
+#                lty = 2,
+#                aes(x=xmin, xend = xmax, y = y, yend = y),
+#                color = 'forestgreen') +
+#   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
+#                                          ymin = Min,  ymax = Max)) +
+#   geom_rect(data = df_from_study_meta,
+#             color = NA, alpha = 0.1, aes(xmin = xmin, xmax = xmax,
+#                                          ymin = Min,  ymax = Max),
+#             fill = "forestgreen") +
+#   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
+#   facet_wrap( ~ serogroup_VE) +
+#   theme_bw(base_size = 14, base_family = "Lato") +
+#   theme(axis.text        = element_text(face = "bold"),
+#         strip.background = element_rect(fill = "white"),
+#         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
+#   theme(panel.grid.minor.x = element_blank()) +
+#   ylim(c(NA,100))
+# 
+# ggsave("output/S4_Fig_vaccine_efficacy.png",
+#        plot = VE_plot,
+#        width = 9, height = 6, unit="in", dpi = 300)
 

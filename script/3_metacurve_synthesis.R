@@ -23,24 +23,24 @@ waning_rate <- waning_rate %>%
     .funs = ~multiply_by(e1 = .,
                          e2 = 1/waning_rate$Mean[1])) 
 
-VE_plot_meta <- dat_ %>%
+VE_meta <- dat_ %>%
   filter(Study == "Patterson et al. (2016)") %>%
-  select(serogroup, Mean) %>%
+  select(serogroup_VE = serogroup, Mean) %>%
   rename(y = Mean) %>%
   crossing(waning_rate) %>%
   mutate_at(.vars = vars(Mean, Min, Max),
             .funs = ~multiply_by(., y)) %>%
-  select(-y) %>%
-  rename(y = Mean) %>%
+  select(-y) 
+
+VE_plot_meta <- 
+  ggplot(data = VE_meta) +
+  geom_segment(aes(x=xmin, xend = xmax, y = Mean, yend = Mean)) +
   
-  ggplot(data = .) +
-  geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
- 
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
   
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_wrap( ~ serogroup ) +
+  facet_wrap( ~ serogroup_VE ) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
