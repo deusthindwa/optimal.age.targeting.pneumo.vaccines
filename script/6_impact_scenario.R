@@ -15,16 +15,12 @@ cases <- dplyr::inner_join(unnest(ipd_mc, mc), pop_country_df) %>%
 scenarios <- list(
     `55-70`      = list(
         filter        = data.frame(age_dep   = FALSE,
-                                   Waning    = "Fast waning",
                                    serogroup = "PPV23"),
         grouping_vars = c("country", "age_dep", "sim",
-                          "Study.waning",
-                          "serogroup",
-                          "Waning")),
+                          "serogroup")),
     `65`         = list(
         filter        = data.frame(Vac.age   = 65,
                                    age_dep   = FALSE,
-                                   Waning    = "Fast waning",
                                    serogroup = c("PCV20", "PPV23")),
         grouping_vars = c("country",
                           "sim",
@@ -34,36 +30,28 @@ scenarios <- list(
                                    age_dep   = FALSE, 
                                    serogroup = "PPV23"),
         grouping_vars = c("country", "age_dep", "sim",
-                          #"Study.waning",
-                          "serogroup"#,
-                          #"Waning"
-        )),
+                          "serogroup")),
     `80`         = list(
         filter        = data.frame(age_dep   = FALSE,
-                                   Waning    = "Fast waning", 
                                    serogroup = "PPV23",
                                    Vac.age   = c(55, 85)),
         grouping_vars = c("country", "age_dep", "sim",
-                          "Study.waning",
-                          "serogroup",
-                          "Waning")),
+                          "serogroup")),
     `65, 75, 85` = list(
         filter        = data.frame(age_dep   = TRUE,
-                                   Waning    = "Fast waning",
                                    serogroup = "PPV23"),
         grouping_vars = c("country", "age_dep", "sim",
-                          "Study.waning",
-                          "serogroup",
-                          "Waning"))
+                          "serogroup"))
 )
 
 
 # turn into a function
 
-make_averted_cases <- function(x, grouping_vars = c("country", "age_dep", "sim",
-                                                    "Study.waning",
-                                                    "serogroup",
-                                                    "Waning")){
+make_averted_cases <- function(x, grouping_vars = c("country", 
+                                                    "age_dep",
+                                                    "sim",
+                                                    "serogroup"
+                                                    )){
     
     dplyr::ungroup(x) %>%
         dplyr::group_by_at(.vars = vars(any_of(grouping_vars))) %>%
@@ -95,7 +83,7 @@ impact_scenarios <- scenarios %>%
 impact_scenarios %>%
     {map2(.x = ., .y = names(.),
           ~write_csv(x = .x,
-                     path = sprintf("output/scenario %s.csv", .y)))}
+                     file = sprintf("output/scenario %s.csv", .y)))}
 
 # 55-70
 # readr::write_csv(x    = prop_averted_cases_5570y_vax, 

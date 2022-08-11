@@ -5,26 +5,12 @@
 # define efficacy waning using studies
 VE_impact_by_age <- VE_by_Vac.age %>%
     dplyr::group_by(serogroup,
-                    Study.waning,
-                    #Study.VE,
                     age_dep,
-                    #delay,
                     sim,
                     Vac.age,
                     country) %>%
     
-    dplyr::summarise(Impact = sum(Impact)) %>%
-    ungroup %>%
-    dplyr::mutate(Waning = sub(pattern     = "None", 
-                               replacement = "No waning",
-                               x           = Study.waning),
-                  Waning = sub(pattern     = "Andrews et al. (2012)",
-                               replacement = "Fast waning",
-                               x           = Waning),
-                  Waning = sub(pattern     = "Djennad et al. (2018)",
-                               replacement = "Slow waning", 
-                               x           = Waning)) %>%
-  mutate(Waning = if_else(Waning == "Andrews et al. (2012)", "Fast waning", "Slow waning"))
+    dplyr::summarise(Impact = sum(Impact)) 
 
 
 # add uncertainty to VE impact
@@ -43,13 +29,13 @@ make_grid_plot <- function(x, ylab = NULL, percent = FALSE, ylim = c(0,NA)){
     p <- ggplot(x,
                 aes(x = Vac.age, y = `50%`,
                     color = factor(age_dep),
-                    group = interaction(Waning, age_dep, serogroup, country))) +
+                    group = interaction(age_dep, serogroup, country))) +
         geom_line() + 
         geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, 
                         fill = factor(age_dep)), color = NA, alpha = 0.2) +
         geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`, 
                         fill = factor(age_dep)), color = NA, alpha = 0.2) +
-        facet_nested(country ~ serogroup + Waning, scales = "free_y") +
+        facet_nested(country ~ serogroup, scales = "free_y") +
         theme_bw() +
         scale_x_continuous(breaks = seq(60, 90, 10)) +
         theme(axis.text=element_text(size=10, color="black")) +
@@ -114,7 +100,7 @@ impact_per_case <- ipd_mc %>%
                            filter(agey >= Vac.age) %>%
                            # end per vaccinee
                            group_by(Vac.age, sim) %>%
-                           summarise(cases = sum(fit)))) %>%
+                           summarise(cases = sum(fit), .groups = 'drop'))) %>%
     select(-data, -model, -mc) %>%
     unnest(cases) %>%
     inner_join(VE_impact_by_age) %>%
