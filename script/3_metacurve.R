@@ -57,18 +57,20 @@ dat_ <- lapply(X = dat,
   mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
   mutate(xmax = ifelse(is.na(xmax), 60, xmax))
 
-df <- dat_ %>% 
-  # filter(Study != "Wright et al. (2013)") %>%
-  rename(y = "Mean")
+source('script/3_metacurve_synthesis.R')
+
+# df <- VE_meta %>% 
+#   # filter(Study != "Wright et al. (2013)") %>%
+#   rename(y = "Mean")
 
 
 df_from_study <- 
-  dat_ %>%
+  VE_meta %>%
   #filter(!grepl('Wright', Study)) %>%
   mutate(sd = (Max - Min)/2/1.96,
          xmax = xmax - 0.5)  %>%
-  nest(data = -c(Study, serogroup, xmin, xmax)) %>%
-  mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 50))))) %>%
+  nest(data = -c(serogroup, xmin, xmax)) %>%
+  mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 60))))) %>%
   mutate(newdata = map(.x = newdata, ~crossing(sim = 1:nsims, .x))) %>%
   mutate(newdata = map2(.x = newdata, .y = data,
                         .f = ~mutate(.x, fit = rnorm(n    = nrow(.x),
@@ -76,13 +78,13 @@ df_from_study <-
                                                      sd   = .y$sd)))) %>%
   select(-data) %>%
   unnest(newdata) %>%
-  arrange(Study, sim, t, fit)
+  arrange(sim, t, fit)
 
 
 
 df_from_study_meta <-
   df_from_study %>%
-  filter(Study != "Patterson et al. (2016)") %>%
+  # filter(Study != "Patterson et al. (2016)") %>%
   select(Study, serogroup, sim, t, fit) %>%
   mutate(t = cut(t, c(0, 2, 5, Inf),
                  include.lowest = T)) %>%
@@ -93,14 +95,14 @@ df_from_study_meta <-
             Min = quantile(fit, 0.025),
             Max = quantile(fit, 0.975)) %>%
   ungroup %>%
-    mutate(t = gsub(x= t, pattern = "(\\[|\\]|\\)|\\()", 
-                    replacement = "")) %>%
+  mutate(t = gsub(x= t, pattern = "(\\[|\\]|\\)|\\()", 
+                  replacement = "")) %>%
   separate(t, into = c('xmin', 'xmax'), sep = ",") %>%
-    mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-    mutate(xmax = ifelse(is.na(xmax), 60, xmax)) 
+  mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
+  mutate(xmax = ifelse(is.na(xmax), 60, xmax)) 
 
 ggplot(df_from_study_meta) +
-geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
+  geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +

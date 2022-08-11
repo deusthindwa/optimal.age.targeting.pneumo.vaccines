@@ -23,7 +23,7 @@ waning_rate <- waning_rate %>%
     .funs = ~multiply_by(e1 = .,
                          e2 = 1/waning_rate$Mean[1])) 
 
-VE_plot_meta <- dat_ %>%
+VE_meta <- dat_ %>%
   filter(Study == "Patterson et al. (2016)") %>%
   select(serogroup, Mean) %>%
   rename(y = Mean) %>%
@@ -31,10 +31,17 @@ VE_plot_meta <- dat_ %>%
   mutate_at(.vars = vars(Mean, Min, Max),
             .funs = ~multiply_by(., y)) %>%
   select(-y) %>%
-  rename(y = Mean) %>%
-  
-  ggplot(data = .) +
-  geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
+  # rename(y = Mean) %>%
+  mutate(xmax = ifelse(is.infinite(xmax), 60L, xmax)) %>%
+  nest(data = -serogroup) %>%
+  spread(serogroup, data) %>%
+  select(PCV13, PCV15 = All, PCV20 = All, PPV23 = All) %>%
+  gather(serogroup, data) %>%
+  unnest(cols = data)
+
+VE_plot_meta <-
+  ggplot(data = VE_meta) +
+  geom_segment(aes(x=xmin, xend = xmax, y = Mean, yend = Mean)) +
  
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
@@ -46,8 +53,7 @@ VE_plot_meta <- dat_ %>%
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
   theme(panel.grid.minor.x = element_blank()) +
-  ylim(c(NA,100)) +
-  xlim(c(0, 20))
+  coord_cartesian(xlim = c(0, 20), ylim = c(NA, 100))
 
 
 ggsave("output/S4_Fig_vaccine_efficacy_meta.png",
