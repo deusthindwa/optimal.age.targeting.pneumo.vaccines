@@ -140,8 +140,15 @@ IncidR %>%
          irrl = irr - 1.96*irrsd,
          irru = irr + 1.96*irrsd)
 
+#================================================================
 
+# HIV propensity
+propensity <- readr::read_csv("data/hiv_propensity.csv") %>% filter(hiv != "Unknown")
 
+# perform year stratified random sampling
+set.seed(1988) #reproducibility
+propensity_samp <- stratified(propensity, c("year"), 15) #sampling
+propensity_samp %>% group_by(hiv) %>% tally(totalST)
 
 
 
