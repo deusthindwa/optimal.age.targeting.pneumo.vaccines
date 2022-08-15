@@ -1,6 +1,6 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# exponential decay and growth models.
+# piecewise constant models of VE.
 # 1/08/2021-30/09/2021
 
 # vaccine efficacy from published papers
@@ -58,40 +58,12 @@ dat_ <- lapply(X = dat,
 
 df <- dat_ %>% filter(Study != "Wright et al. (2013)") %>% rename(y = "Mean")
 
-# function to compute mean and variance given range of VE data 
-f <- function(parms, df){
-  g <- function(parms, xmin, xmax){
-    mean(parms[1]*exp(parms[2]*seq(xmin, xmax, by = 1)))
-  }
-  df <- df %>% 
-    rowwise %>% 
-    mutate(ynew = g(parms, xmin, xmax)) %>% 
-    ungroup
-  return( sum( (df$y - df$ynew)^2 ))
-}
-
-# simulating exponential decay model to compute mean VE and 95%CIs
-ans_by_study <- df %>% 
-  split(.$Study) %>% 
-  map(~optim(par = c(50, -0.5), fn = f, df = .x, hessian = TRUE)) 
-
-simulate_from_ans <- function(x, nsim = 1e4, newdata){
-  f <- function(x){
-    mutate(x, fit = X1*exp(X2*t))
-  }
-  dat <- data.frame(rmvnorm(n = nsim, mean = x$M, sigma = x$V)) %>% 
-    mutate(sim = 1:n()) %>% 
-    crossing(newdata) %>% 
-    f 
-  return(dat)
-}
-
 df_from_study <- 
   dat_ %>%
   filter(!grepl('Wright', Study)) %>%
   mutate(sd = (Max - Min)/2/1.96,
          xmax = xmax - 0.5)  %>%
-  nest(data = -c(Study, xmin, xmax)) %>%
+  nest(data = -c(Study, serogroup, xmin, xmax)) %>%
   mutate(newdata = map2(.x = xmin, .y = xmax, ~data.frame(t = seq(.x, min(.y, 50))))) %>%
   mutate(newdata = map(.x = newdata, ~crossing(sim = 1:nsims, .x))) %>%
   mutate(newdata = map2(.x = newdata, .y = data,
@@ -103,8 +75,9 @@ df_from_study <-
   arrange(Study, sim, t, fit)
 
 # simulated VE dataset with mean VE and 95%CI
+# not used
 df_by_study_q <- df_from_study %>%
-  nest(data = -c(Study, t)) %>%
+  nest(data = -c(Study, serogroup, t)) %>%
   mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
   select(-data)
@@ -115,43 +88,15 @@ VE_plot <- ggplot(data=df) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_grid(.~Study) +
+  facet_wrap( ~ serogroup + Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  theme(panel.grid.minor.x = element_blank())
+  theme(panel.grid.minor.x = element_blank()) +
+  ylim(c(NA,100))
 
 ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
-       width = 9, height = 3, unit="in", dpi = 300)
-
-#===========================================================
-
-# simulated VE dataset
-df_from_studyX <- ans_by_study %>%
-  map(~list(M = .x$par, V = solve(.x$hessian))) %>%
-  map_df(~simulate_from_ans(.x, nsim = nsims, 
-                            newdata = data.frame(t = seq(0,20))),
-         .id = "Study") %>%
-  rename(VE = X1, rate = X2) %>%
-  mutate(VE = VE/100)
-
-# summary of initial VE and waning rate and 95%CI from model
-ans_by_study_parms_from_model <-
-  df_from_studyX %>%
-  distinct(Study, VE, sim, rate) %>%
-  mutate(rate = -rate) %>%
-  gather(key, value, VE, rate) %>%
-  nest(data = c(sim, value)) %>%
-  mutate(Q = map(data, ~quantile(.x$value, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q) %>%
-  select(-data) %>%
-  group_by(Study, key) %>%
-  transmute(value = sprintf("%0.2f (%0.2f, %0.2f)", `50%`, `2.5%`, `97.5%`)) %>%
-  spread(key, value) %>%
-  select(Study, `Initial efficacy` = VE, `Waning rate` = rate) %>%
-  write_csv(here("output", "Table_S1_vaccine_efficacy.csv"))
-
-#===========================================================
+       width = 9, height = 6, unit="in", dpi = 300)
 

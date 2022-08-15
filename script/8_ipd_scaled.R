@@ -1,6 +1,5 @@
-# written by Deus Thindwa & Samuel Clifford
+# written by Samuel Clifford & Deus Thindwa 
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# exponential decay and growth models.
 # 31/02/2022
 
 # calculate and plot scaled incidence
@@ -25,6 +24,6 @@ B <-
   facet_grid(country ~ serogroup) 
 
 # combined incidence plot
-ggsave(here("output", "S3_Fig_scaled_incidence.png"),
+ggsave("output/S3_Fig_scaled_incidence.png",
        plot = B,
        width = 10, height = 8, unit="in", dpi = 300)
