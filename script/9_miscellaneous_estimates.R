@@ -12,14 +12,15 @@ pop_country_df %>%
 # total number IPD cases and proportion of cases <65y by country
 cbind (
   ipd %>% 
+    filter(serogroup == "All") %>%
     group_by(country) %>%
-    tally(cases) %>%
+    tally(cases/survyr) %>%
     rename("total" = n),
   
   ipd %>% 
-    filter(agey<65) %>%
+    filter(agey<65 & serogroup == "All") %>%
     group_by(country) %>%
-    tally(cases) %>%
+    tally(cases/survyr) %>%
     select(n)
   ) %>%
   mutate(p = n/total)
