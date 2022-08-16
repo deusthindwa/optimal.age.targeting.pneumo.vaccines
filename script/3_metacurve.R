@@ -87,7 +87,7 @@ VE_plot <- ggplot(data=df) +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
-  labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
+  labs(x = "Years since vaccination", y = "Vaccine efficacy/effectiveness (%)") +
   facet_wrap( ~ serogroup + Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),

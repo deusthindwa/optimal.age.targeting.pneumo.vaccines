@@ -90,7 +90,7 @@ VE_time <-
   unnest_wider(Q) %>%
   ggplot(data = ., aes(x = t, y = `50%`)) +
   xlab("Years since vaccination") +
-  ylab("Vaccine efficacy") +
+  ylab("Vaccine efficacy/effectiveness") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   RcmdrPlugin.KMggplot2::geom_stepribbon(aes(fill = age_dep,
                                              ymin = `2.5%`,
@@ -99,8 +99,8 @@ VE_time <-
   geom_step(aes(color = age_dep)) + 
   facet_nested(Vac.age ~ Study.waning  + serogroup, 
                labeller = labeller(Vac.age = function(x){paste("Vacc. age:", x)})) +
-  scale_fill_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
-  scale_color_brewer(palette = 'Set1', name = 'Age dependent vaccine effectiveness') +
+  scale_fill_brewer(palette = 'Set1', name = 'Age dependent vaccine efficacy/effectiveness') +
+  scale_color_brewer(palette = 'Set1', name = 'Age dependent vaccine efficacy/effectiveness') +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),

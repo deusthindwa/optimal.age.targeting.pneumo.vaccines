@@ -60,8 +60,8 @@ make_grid_plot <- function(x, ylab = NULL, percent = FALSE, ylim = c(0,NA)){
               strip.background = element_rect(fill = "white"),
               panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
         theme(legend.position = "bottom") +
-        scale_color_brewer(name = "Age dependent vaccine efficacy", palette = "Set1") + 
-        scale_fill_brewer(name = "Age dependent vaccine efficacy", palette = "Set1")
+        scale_color_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1") + 
+        scale_fill_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1")
     
     if (percent){
         p <- p + scale_y_continuous(labels = function(x){sprintf("%g%%",x*100)},
