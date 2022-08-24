@@ -128,9 +128,9 @@ plot_impact_per_case <-
   make_grid_plot(x    = impact_per_case,  percent = TRUE,
                  ylab = "Vaccine impact (proportion of cases averted among vaccinees)")
 
-ggsave(filename = "output/vaccine_impact_per_case.png", 
-       plot = plot_impact_per_case,
-       width = 14, height = 8, units = "in", dpi = 300)
+#ggsave(filename = "output/vaccine_impact_per_case.png", 
+#       plot = plot_impact_per_case,
+#       width = 14, height = 8, units = "in", dpi = 300)
 
 #===============================================================================================
 
@@ -158,6 +158,6 @@ plot_impact_per_vaccinee <-
     make_grid_plot(x    = impact_per_vaccinee, 
                    ylab = "Vaccine impact (Cases averted per 100,000 vaccinees)")
 
-ggsave(filename = "output/vaccine_impact_per_vaccinee.png", 
-       plot = plot_impact_per_vaccinee,
-       width = 14, height = 8, units = "in", dpi = 300)
+#ggsave(filename = "output/vaccine_impact_per_vaccinee.png", 
+#       plot = plot_impact_per_vaccinee,
+#       width = 14, height = 8, units = "in", dpi = 300)
