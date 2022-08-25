@@ -74,7 +74,7 @@ cases <- dplyr::inner_join(unnest(ipd_mc, mc), pop_country_df) %>%
   dplyr::mutate(cases = fit*ntotal/scale, Vac.age = agey)
 
 Table_S3 <- VE_impact_by_age %>%
-  dplyr::filter(Vac.age == 60 & !is.na(country) & age_dep == FALSE, serogroup == "PPV23") %>% 
+  dplyr::filter(Vac.age == 80 & !is.na(country) & age_dep == FALSE, serogroup == "PPV23") %>% 
   dplyr::left_join(dplyr::select(cases, serogroup, Vac.age, country, sim, cases))
 
 Table_S3 <- 
