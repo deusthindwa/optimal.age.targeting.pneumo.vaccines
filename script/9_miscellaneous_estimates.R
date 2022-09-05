@@ -80,6 +80,7 @@ C <-
                   ymin = `2.5%`, ymax = `97.5%`),
               alpha = 0.2, color = NA) +
   geom_point(data = ipd, aes(x = agey, y = obs), size = 2) +
+  geom_point(data = filter(ipd, !is.na(encases)), aes(x = agey, y = incidencex), size = 1, color = "red") +
   geom_linerange(data = ipd,
                  aes(x = agey, 
                      ymin = obs_lci, 

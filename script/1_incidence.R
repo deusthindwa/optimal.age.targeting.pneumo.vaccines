@@ -2,9 +2,23 @@
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
 # 31/02/2022
 
-# load the IPD cases and estimate uncertainty of observed IPD cases
-scale = 100000
+# back inflation of IPD cases in England due to presence of current PPV23
+vax.cov = 0.7
+VEa = 0.25
+VEb = 0.35
+
 ipd <- readr::read_csv("data/total_incidence.csv") %>%
+  rename("casesx" = "cases", "incidencex" = "incidence") %>%
+  mutate(cases = if_else(country == "England" & (agegroup == "65-69" | agegroup == "70-74"), casesx/(vax.cov*(1-VEa) + (1-vax.cov)),
+                          if_else( country == "England" & (agegroup == "75-79" | agegroup == "80-84" | agegroup == "85+"), casesx/(vax.cov*(1-VEb) + (1-vax.cov)), casesx)),
+         incidence = cases/npop*100000,
+         encases = if_else(casesx != cases, casesx, NA_real_))
+
+# load the IPD cases and estimate uncertainty of observed IPD cases
+#ipd <- readr::read_csv("data/total_incidence.csv") %>%
+scale = 100000
+ipd <- 
+  ipd %>%
   mutate(agey = readr::parse_number(substr(agegroup, 1, 2)),
          obs = (cases/npop)*scale) %>%
   mutate(serogroup = ifelse(serogroup == "All serotypes", "All", serogroup)) %>%
