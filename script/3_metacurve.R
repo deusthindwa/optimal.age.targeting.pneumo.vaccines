@@ -9,7 +9,7 @@ dat <- list(
   `Andrews et al. (2012)` = 
     list(
       PPV23 = list(`0-2` = c(48, 32, 60),
-                   `2-5` = c(21, 03, 36),
+                   `2-5` = c(31, 03, 36),
                    `5-Inf` = c(15, -3, 30))
     ),
   
@@ -41,8 +41,8 @@ dat <- list(
   
   `Patterson et al. (2016)` = 
     list(
-      All   = list(`0-Inf` = c(52, 22, 77)),
-      PCV13 = list(`0-Inf` = c(75, 41, 91))
+      #All   = list(`0-Inf` = c(52, 22, 77)),
+      PCV13 = list(`0-5` = c(75, 41, 91))
     )
 )
 
@@ -76,11 +76,11 @@ df_from_study <-
 
 # simulated VE dataset with mean VE and 95%CI
 # not used
-df_by_study_q <- df_from_study %>%
-  nest(data = -c(Study, serogroup, t)) %>%
-  mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q) %>%
-  select(-data)
+# df_by_study_q <- df_from_study %>%
+#   nest(data = -c(Study, serogroup, t)) %>%
+#   mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
+#   unnest_wider(Q) %>%
+#   select(-data)
 
 # plot of VE and waning rate
 VE_plot <- ggplot(data=df) +

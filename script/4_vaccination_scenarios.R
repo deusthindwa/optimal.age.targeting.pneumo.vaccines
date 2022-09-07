@@ -57,7 +57,7 @@ crossing(Vac.age = seq(55, 85, by = 5),
 # ensure we scale the PCV ones properly. may need to merge in the info from df 
 # to get the waning right
 # basically we need to make sure the PCV VE at t=0 is 0.75 and then decay according
-# to either djennad or andrews' scalings.
+# to either djennad or andrews' scalings? after 5 years.
 
     scenarios %<>%
     mutate(scale_initial = case_when(
@@ -74,15 +74,19 @@ VE_by_Vac.age <-
       scenarios %>%
   inner_join(select(df_from_study, t,
                     Study.waning = Study, fit, sim)) %>% # get initial waning
-  mutate(VE = fit/100 * scale_initial) 
+  mutate(VE = fit/100 * scale_initial)
 
 VE_by_Vac.age <- pop_cases %>%
   select(serogroup, country, age = agey, cases, Vac.age)  %>%
   right_join(VE_by_Vac.age) %>%
-  dplyr::mutate(Impact = VE*cases)
+  dplyr::mutate(Impact = VE*cases) 
 
 VE_time <- 
   VE_by_Vac.age %>%
+  filter(serogroup == "PCV13" | serogroup == "PPV23") %>%
+  mutate(Study.waning = if_else(Study.waning == "Andrews et al. (2012)", "Fast waning", "Slow waning"),
+         serogroup = if_else(serogroup == "PCV13", "PCVs", "PPV23")) %>%
+
   filter(Vac.age %in% c(55, 65, 75)) %>%
   select(-scale_initial, -fit) %>%
   nest(data = c(sim, VE, Impact)) %>%
@@ -110,4 +114,4 @@ VE_time <-
 
 ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
        plot = VE_time,
-       width = 14, height = 8, units = "in", dpi = 300)
+       width = 8, height = 6, units = "in", dpi = 300)
