@@ -35,7 +35,7 @@ VE_impact_by_age_ <- VE_impact_by_age %>%
                                    probs = c(0.025, 0.5, 0.975)))) %>%
     unnest_wider(Q) %>%
     select(-data) %>%
-  filter(age_dep == TRUE)
+  filter(age_dep == FALSE)
 
 
 make_grid_plot <- function(x, ylab = NULL, percent = FALSE, ylim = c(0,NA)){

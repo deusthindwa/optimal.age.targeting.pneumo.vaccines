@@ -41,8 +41,8 @@ dat <- list(
   
   `Patterson et al. (2016)` = 
     list(
-      #All   = list(`0-Inf` = c(52, 22, 77)),
-      PCV13 = list(`0-5` = c(75, 41, 91))
+     #All   = list(`0-Inf` = c(52, 22, 77)),
+      PCV13 = list(`0-Inf` = c(75, 41, 91))
     )
 )
 
@@ -70,6 +70,7 @@ df_from_study <-
                         .f = ~mutate(.x, fit = rnorm(n    = nrow(.x),
                                                      mean = .y$Mean,
                                                      sd   = .y$sd)))) %>%
+                    
   select(-data) %>%
   unnest(newdata) %>%
   arrange(Study, sim, t, fit)
@@ -83,12 +84,15 @@ df_from_study <-
 #   select(-data)
 
 # plot of VE and waning rate
-VE_plot <- ggplot(data=df) +
+VE_plot <- 
+  df %>%
+  mutate(xmax = if_else(Study == "Patterson et al. (2016)", 5, xmax)) %>%
+  ggplot() +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
   labs(x = "Years since vaccination", y = "Vaccine efficacy/effectiveness (%)") +
-  facet_wrap( ~ serogroup + Study) +
+  facet_grid( ~ serogroup + Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
@@ -98,5 +102,5 @@ VE_plot <- ggplot(data=df) +
 
 ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
-       width = 9, height = 6, unit="in", dpi = 300)
+       width = 14, height = 4, unit="in", dpi = 300)
 

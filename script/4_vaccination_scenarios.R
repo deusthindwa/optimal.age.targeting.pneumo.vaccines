@@ -57,25 +57,26 @@ crossing(Vac.age = seq(55, 85, by = 5),
 # ensure we scale the PCV ones properly. may need to merge in the info from df 
 # to get the waning right
 # basically we need to make sure the PCV VE at t=0 is 0.75 and then decay according
-# to either djennad or andrews' scalings? after 5 years.
+# to either djennad or andrews' scalings after 5 years.
 
     scenarios %<>%
     mutate(scale_initial = case_when(
     Study.waning == "Andrews et al. (2012)"   &
       grepl(pattern = 'PCV', x = serogroup) &
-      t >= 5 ~ scale_initial * 15/31.8,
-    Study.waning == "Djennad et al. (2018)"   & 
+      t > 5 ~ scale_initial * 15/31.8,
+    Study.waning == "Djennad et al. (2018)"   &
       grepl(pattern = 'PCV', x = serogroup) &
-      t >= 5 ~ scale_initial * 23/36.8,
+      t > 5 ~ scale_initial * 23/36.8,
     TRUE                                      ~ scale_initial))
 
-
-VE_by_Vac.age <- 
+# combine VE from metacurve and scenarios
+VE_by_Vac.age <-
       scenarios %>%
   inner_join(select(df_from_study, t,
-                    Study.waning = Study, fit, sim)) %>% # get initial waning
+                    Study.waning = Study, fit, sim)) %>% # get initial VE
   mutate(VE = fit/100 * scale_initial)
 
+# combine estimated VE and popn cases and demography
 VE_by_Vac.age <- pop_cases %>%
   select(serogroup, country, age = agey, cases, Vac.age)  %>%
   right_join(VE_by_Vac.age) %>%
@@ -95,7 +96,7 @@ VE_time <-
   ggplot(data = ., aes(x = t, y = `50%`)) +
   xlab("Years since vaccination") +
   ylab("Vaccine efficacy/effectiveness") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(limits = c(0,0.75), labels = scales::percent_format(accuracy = 1)) +
   RcmdrPlugin.KMggplot2::geom_stepribbon(aes(fill = age_dep,
                                              ymin = `2.5%`,
                                              ymax = `97.5%`),
@@ -109,7 +110,7 @@ VE_time <-
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  scale_x_continuous(limits = c(0,10), breaks = ~pretty.default(., n=3)) +
+  scale_x_continuous(limits = c(0,30), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
 ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
