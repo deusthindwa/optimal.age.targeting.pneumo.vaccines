@@ -93,10 +93,13 @@ VE_time <-
   nest(data = c(sim, VE, Impact)) %>%
   mutate(Q = map(data, ~quantile(.x$VE, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
+  mutate(y5ve = if_else(serogroup == "PCVs" & t<6, 0.75, NA_real_),
+         t = if_else(serogroup == "PCVs", t+5, t)) %>% 
   ggplot(data = ., aes(x = t, y = `50%`)) +
   xlab("Years since vaccination") +
   ylab("Vaccine efficacy/effectiveness") +
-  scale_y_continuous(limits = c(0,0.75), labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(limits = c(NA, 0.80), labels = scales::percent_format(accuracy = 1)) +
+  geom_point(aes(x = t-5, y = y5ve), shape = 4, stroke = 1, size = 1) +
   RcmdrPlugin.KMggplot2::geom_stepribbon(aes(fill = age_dep,
                                              ymin = `2.5%`,
                                              ymax = `97.5%`),
@@ -110,7 +113,7 @@ VE_time <-
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  scale_x_continuous(limits = c(0,30), breaks = ~pretty.default(., n=3)) +
+  scale_x_continuous(limits = c(0, 9), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
 ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
