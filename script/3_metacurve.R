@@ -9,7 +9,7 @@ dat <- list(
   `Andrews et al. (2012)` = 
     list(
       PPV23 = list(`0-2` = c(48, 32, 60),
-                   `2-5` = c(21, 03, 36),
+                   `2-5` = c(31, 03, 36),
                    `5-Inf` = c(15, -3, 30))
     ),
   
@@ -41,7 +41,7 @@ dat <- list(
   
   `Patterson et al. (2016)` = 
     list(
-      All   = list(`0-Inf` = c(52, 22, 77)),
+     #All   = list(`0-Inf` = c(52, 22, 77)),
       PCV13 = list(`0-Inf` = c(75, 41, 91))
     )
 )
@@ -70,25 +70,29 @@ df_from_study <-
                         .f = ~mutate(.x, fit = rnorm(n    = nrow(.x),
                                                      mean = .y$Mean,
                                                      sd   = .y$sd)))) %>%
+                    
   select(-data) %>%
   unnest(newdata) %>%
   arrange(Study, sim, t, fit)
 
 # simulated VE dataset with mean VE and 95%CI
 # not used
-df_by_study_q <- df_from_study %>%
-  nest(data = -c(Study, serogroup, t)) %>%
-  mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q) %>%
-  select(-data)
+# df_by_study_q <- df_from_study %>%
+#   nest(data = -c(Study, serogroup, t)) %>%
+#   mutate(Q = map(data, ~quantile(.x$fit, probs = c(0.025, 0.5, 0.975)))) %>%
+#   unnest_wider(Q) %>%
+#   select(-data)
 
 # plot of VE and waning rate
-VE_plot <- ggplot(data=df) +
+VE_plot <- 
+  df %>%
+  mutate(xmax = if_else(Study == "Patterson et al. (2016)", 5, xmax)) %>%
+  ggplot() +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
   geom_rect(color = NA, alpha = 0.2, aes(xmin = xmin, xmax = xmax,
                                          ymin = Min,  ymax = Max)) +
-  labs(x = "Years since vaccination", y = "Vaccine efficacy (VE, %)") +
-  facet_wrap( ~ serogroup + Study) +
+  labs(x = "Years since vaccination", y = "Vaccine efficacy/effectiveness (%)") +
+  facet_grid( ~ serogroup + Study) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
@@ -98,5 +102,5 @@ VE_plot <- ggplot(data=df) +
 
 ggsave("output/S4_Fig_vaccine_efficacy.png",
        plot = VE_plot,
-       width = 9, height = 6, unit="in", dpi = 300)
+       width = 14, height = 4, unit="in", dpi = 300)
 

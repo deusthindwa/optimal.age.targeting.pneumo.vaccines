@@ -30,7 +30,7 @@ source("script/4_vaccination_scenarios.R")
 source("script/5_vaccine_impact.R")
 
 # compute isolated impact scenarios (supplementary)
-source("script/6_impact_scenario.R")
+source("script/6_impact_scenariotabs.R")
 
 # make plots on raw IPD data from various countries (supplementary)
 source("script/7_yearly_cases.R")

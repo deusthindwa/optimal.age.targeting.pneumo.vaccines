@@ -80,6 +80,7 @@ C <-
                   ymin = `2.5%`, ymax = `97.5%`),
               alpha = 0.2, color = NA) +
   geom_point(data = ipd, aes(x = agey, y = obs), size = 2) +
+  geom_point(data = filter(ipd, !is.na(encases)), aes(x = agey, y = incidencex), size = 1, color = "red") +
   geom_linerange(data = ipd,
                  aes(x = agey, 
                      ymin = obs_lci, 
@@ -142,7 +143,7 @@ IncidR %>%
 
 #================================================================
 
-# HIV propensity
+# HIV propensity to determine immunocompetency
 propensity <- readr::read_csv("data/hiv_propensity.csv") %>% filter(hiv != "Unknown")
 
 # perform year stratified random sampling
@@ -150,5 +151,4 @@ set.seed(1988) #reproducibility
 propensity_samp <- stratified(propensity, c("year"), 15) #sampling
 propensity_samp %>% group_by(hiv) %>% tally(totalST)
 
-
-
+#================================================================
