@@ -119,7 +119,7 @@ ggsave(filename = "output/S6_Fig_vaccine_impact_cohort_age_dep.png",
 
 #===============================================================================================
 
-# vaccine impact per 100,000 older adults (age-independent)
+# vaccine impact per 100,000 age cohort vaccinees  (age-independent)
 VE_impact_validated_ageI_ <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
     dplyr::rename(Vac.age = agey) %>% 
     dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
@@ -129,7 +129,7 @@ VE_impact_validated_ageI_ <- dplyr::select(pop_country_df, country, agey, ntotal
     unnest_wider(Q) %>%
   filter(age_dep == FALSE)
 
-# impact per 100,000 older adults vaccinated from specific age cohort (ntotal)
+# impact per 100,000 older adults vaccinated in specific age cohort (ntotal)
 VE_B1 <- make_grid_plot(x = VE_impact_validated_ageI_, ylab = "Impact (cases averted per 100,000 vaccinees)") +
   geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1)
 
@@ -137,7 +137,7 @@ ggsave(filename = "output/Fig3_vaccine_impact_vaccinee_age_indep.png",
        plot = VE_B1,
        width = 14, height = 8, units = "in", dpi = 300)
 
-# vaccine impact per 100,000 older adults (age-dependent)
+# vaccine impact per 100,000 age cohort vaccinees (age-dependent)
 VE_impact_validated_ageD_ <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
@@ -147,7 +147,7 @@ VE_impact_validated_ageD_ <- dplyr::select(pop_country_df, country, agey, ntotal
   unnest_wider(Q) %>%
   filter(age_dep == TRUE)
 
-# impact per 100,000 older adults vaccinated from specific age cohort (ntotal)
+# impact per 100,000 older adults vaccinated in specific age cohort (ntotal)
 VE_B2 <- make_grid_plot(x = VE_impact_validated_ageD_, ylab = "Impact (cases averted per 100,000 vaccinees)") +
   geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1)
 
@@ -157,7 +157,7 @@ ggsave(filename = "output/S7_Fig_vaccine_impact_vaccinee_age_dep.png",
 
 #===============================================================================================
 
-#vaccine impact compared to unvaccinated
+#vaccine impact (proportion of preventable IPD cases) e.g., cases that could have been prevented due to vaccination 
 impact_per_case <- ipd_mc %>%
     mutate(cases = map(.x = mc, .f = ~group_by(.x, sim) %>%
                            # make it per vaccinee
@@ -176,12 +176,11 @@ impact_per_case <- ipd_mc %>%
     unnest_wider(Q)
 
 # plot_impact_per_case <- 
-VE_C1 <- make_grid_plot(x = impact_per_case,  percent = TRUE, ylab = "Vaccine impact (proportion of cases averted among vaccinees)") + 
+VE_C1 <- make_grid_plot(x = impact_per_case,  percent = TRUE, ylab = "Vaccine impact (proportion of preventable IPD cases)") + 
   geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1) + 
   theme(legend.position = "bottom") + 
   scale_color_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1")
-
 
 ggsave(filename = "output/S8_Fig_vaccine_impact_per_vaccinee.png", 
        plot = VE_C1,
@@ -210,12 +209,11 @@ impact_per_vaccinee <-
     unnest_wider(Q)
 
 # plot_impact_per_vaccinee <- 
-VE_C2 <- make_grid_plot(x = impact_per_vaccinee, ylab = "Vaccine impact (Cases averted per 100,000 vaccinees)") +
+VE_C2 <- make_grid_plot(x = impact_per_vaccinee, ylab = "Vaccine impact (Cases averted per 100,000 population)") +
   geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1) +
   theme(legend.position = "bottom") + 
   scale_color_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1") + 
   scale_fill_brewer(name = "Age dependent vaccine efficacy/effectiveness", palette = "Set1")
-
 
 ggsave(filename = "output/S9_Fig_vaccine_impact_per_100k_pop.png", 
        plot = VE_C2,
