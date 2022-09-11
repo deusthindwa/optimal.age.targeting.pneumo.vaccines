@@ -113,9 +113,9 @@ VE_time <-
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  scale_x_continuous(limits = c(0, 9), breaks = ~pretty.default(., n=3)) +
+  scale_x_continuous(limits = c(0, 10), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
 ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
        plot = VE_time,
-       width = 8, height = 6, units = "in", dpi = 300)
+       width = 9, height = 8, units = "in", dpi = 300)
