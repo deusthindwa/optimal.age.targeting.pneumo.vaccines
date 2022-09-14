@@ -29,7 +29,7 @@ cbind (
 
 # proportion of serotypes targeted by vaccines by country
 ipd %>% 
-  filter(serogroup != "All") %>%
+  #filter(serogroup != "All") %>%
   group_by(country, serogroup) %>%
   tally(cases) %>%
   mutate(p = n/sum(n))

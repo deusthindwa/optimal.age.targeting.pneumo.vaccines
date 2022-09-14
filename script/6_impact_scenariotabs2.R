@@ -8,7 +8,7 @@
 impact_scene <- 
   ipd_mc %>%
   mutate(cases = map(.x = mc, .f = ~group_by(.x, sim) %>%
-                       crossing(Vac.age = seq(55, 85, by = 5)) %>%
+                       crossing(Vac.age = seq(-55, 85, by = 5)) %>%
                        filter(agey >= Vac.age) %>%
                        group_by(Vac.age, sim) %>%
                        summarise(cases = sum(fit)))) %>%
