@@ -58,6 +58,24 @@ VE_impact_max <-
 VE_impact_max
 }
 
+# function to identify the age for vaccination efficiency for each vaccine type and country
+o <- function(r){
+  VE_impact_min <- 
+    left_join(
+      r %>%
+        mutate(minI = `50%`) %>%
+        select(serogroup, Waning, country, minI) %>%
+        group_by(serogroup, Waning, country) %>%
+        summarise(Impactmin = min(minI, na.rm=TRUE)),
+      
+      r %>%
+        mutate(minI = `50%`) %>%
+        select(serogroup, Waning, country, age_dep, Vac.age, minI) %>%
+        group_by(serogroup, Waning, country, age_dep, Vac.age) %>%
+        summarise(Impactmin = min(minI, na.rm=TRUE)) 
+    )
+  VE_impact_min
+}
 #===============================================================================================
 
 # define efficacy waning using studies
@@ -123,15 +141,15 @@ ggsave(filename = "output/S6_Fig_vaccine_impact_cohort_age_dep.png",
 VE_impact_validated_ageI_ <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
     dplyr::rename(Vac.age = agey) %>% 
     dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
-    mutate(Impact = Impact/ntotal*scale) %>%
+  mutate(Impact = ntotal/Impact) %>%
     nest(data = c(sim, Impact)) %>%
     mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
     unnest_wider(Q) %>%
   filter(age_dep == FALSE)
 
 # impact per 100,000 older adults vaccinated in specific age cohort (ntotal)
-VE_B1 <- make_grid_plot(x = VE_impact_validated_ageI_, ylab = "Impact (cases averted per 100,000 vaccinees)") +
-  geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1)
+VE_B1 <- make_grid_plot(x = VE_impact_validated_ageI_, ylab = "Impact (Number of individuals needed to vaccinate to prevent a case)") +
+  geom_point(data = o, aes(x = Vac.age, y = Impactmin), shape = 4, stroke = 1, size = 1)
 
 ggsave(filename = "output/Fig3_vaccine_impact_vaccinee_age_indep.png", 
        plot = VE_B1,
@@ -141,15 +159,15 @@ ggsave(filename = "output/Fig3_vaccine_impact_vaccinee_age_indep.png",
 VE_impact_validated_ageD_ <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
-  mutate(Impact = Impact/ntotal*scale) %>%
+  mutate(Impact = ntotal/Impact) %>%
   nest(data = c(sim, Impact)) %>%
   mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
   filter(age_dep == TRUE)
 
 # impact per 100,000 older adults vaccinated in specific age cohort (ntotal)
-VE_B2 <- make_grid_plot(x = VE_impact_validated_ageD_, ylab = "Impact (cases averted per 100,000 vaccinees)") +
-  geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1)
+VE_B2 <- make_grid_plot(x = VE_impact_validated_ageD_, ylab = "Impact (Number of individuals needed to vaccinate to prevent a case)") +
+  geom_point(data = o, aes(x = Vac.age, y = Impactmin), shape = 4, stroke = 1, size = 1)
 
 ggsave(filename = "output/S7_Fig_vaccine_impact_vaccinee_age_dep.png", 
        plot = VE_B2,
