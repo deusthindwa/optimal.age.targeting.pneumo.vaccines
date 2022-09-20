@@ -30,13 +30,7 @@ source("script/4_vaccination_scenarios.R")
 source("script/5_vaccine_impact.R")
 
 # compute isolated impact scenarios (supplementary)
-source("script/6_impact_scenariotabs.R")
+source("script/6_impact_scenarios.R")
 
-# make plots on raw IPD data from various countries (supplementary)
-source("script/7_yearly_cases.R")
-
-# estimate initial efficacy and waning rates (supplementary)
-source("script/8_ipd_scaled.R")
-
-# estimates of various stats for the results (main)
-source("script/9_miscellaneous_estimates.R")
+# plots and estimates of various stats for the results (main+supplementary)
+source("script/7_miscellaneous_plots_est.R")

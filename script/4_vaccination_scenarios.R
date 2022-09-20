@@ -81,10 +81,10 @@ crossing(Vac.age = seq(55, 85, by = 5),
 VE_by_Vac.age <-
   rbind( 
     filter(scenarios, serogroup == "PPV23") %>%
-      inner_join(select(df_from_study_mc, Study.waning, serogroup, sim, t, fit)), # get initial VE
+      inner_join(select(df_from_study_mc, Study.waning, serogroup, sim, t, fit)), # get initial VE for PPV
       
       filter(scenarios, serogroup != "PPV23") %>%
-      inner_join(select(filter(df_from_study_mc, serogroup != "PPV23"), serogroup, sim, t, fit))) %>% # get initial VE
+      inner_join(select(filter(df_from_study_mc, serogroup != "PPV23"), serogroup, sim, t, fit))) %>% # get initial VE for PCVs
   
   mutate(VE = fit/100 * scale_initial)
 
