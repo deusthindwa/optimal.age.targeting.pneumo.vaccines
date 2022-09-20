@@ -5,7 +5,7 @@
 # back-inflation of IPD cases in England due to current PPV23 program based on Djennad et al.
 cov = 0.70 # vaccination coverage in England
 VEa = 0.41 # VE of 41% in 65-66y and 34% in 67-69y
-VEb = 0.23 # VE of 41% in 70+y 
+VEb = 0.23 # VE of 23% in 70+y 
 
 ipd <- readr::read_csv("data/total_incidence.csv") %>%
   rename("casesx" = "cases", "incidencex" = "incidence") %>%
