@@ -1,3 +1,99 @@
+# written by Samuel Clifford & Deus Thindwa
+# optimal age targeting for pneumoccocal vaccines against IPD in older adults
+# 1/08/2021-30/12/2021
+
+# load the IPD cases and estimate uncertainty of observed IPD cases
+yrcases <- readr::read_csv("data/yearly_cases.csv")
+
+A <- yrcases %>% filter(!is.na(ipd) & serogroup != "All" & agey<90) %>%
+  ggplot() +
+  geom_line(aes(x = agey, y = ipd, color = survyr), size = 1.3) +
+  facet_grid(country  ~ serogroup, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "Age (years)", y = "Reported IPD cases") +
+  theme_bw() +
+  theme(axis.title       = element_text(size = 20),
+        strip.text       = element_text(size = 20), 
+        strip.background = element_rect(fill="white"),
+        axis.text        = element_text(face = "bold", size = 18),
+        legend.position  = "bottom",
+        legend.text      = element_text(size = 18),
+        legend.title     = element_text(size = 18)) +
+  guides(color = guide_legend(title = ""))
+
+B <- yrcases %>% filter(!is.na(ipd) & serogroup == "All" & agey<90) %>%
+  mutate(serogroup = if_else(serogroup == "All", "All serotype groups", serogroup)) %>%
+  ggplot() +
+  geom_line(aes(x = agey, y = ipd, color = survyr), size = 1.3) +
+  scale_color_hue(l = 40, c = 35) +
+  facet_grid(country  ~ serogroup, scales = "free_y") +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "Age (years)", y = "") +
+  theme_bw() + 
+  theme(axis.title.x = element_text(size = 20), axis.title.y = element_text(size = 20)) +
+  theme(strip.text.x = element_text(size = 20), strip.text.y = element_text(size = 20), strip.background=element_rect(fill="white")) +
+  theme(axis.text.x = element_text(face = "bold", size = 18), axis.text.y = element_text(face = "bold", size = 18)) +
+  theme(legend.position = "bottom", legend.text=element_text(size = 18), legend.title = element_text(size = 18)) +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(title = ""))
+
+# combined incidence plot
+ggsave("output/S1_Fig_yearly_cases.png",
+       plot = (A | B | plot_layout(ncol = 2, width = c(4,1))),
+       width = 20, height = 9, unit="in", dpi = 300)
+
+#================================================================
+
+#plot absolute number of cases observed from each country
+pop_burden_plot <- 
+  pop_cases %>% 
+  filter(agey <= 85) %>%
+  ggplot(aes(x = agey, y = cases, color = serogroup, fill  = serogroup)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = lcases, ymax = ucases), alpha = 0.2, color = NA) +
+  theme_bw() +
+  facet_wrap(~country, scales = "free_y") + 
+  ylim(c(0, NA)) + 
+  labs(x = "Age (years)", y = "Expected number of cases") +
+  theme_bw(base_size = 14, base_family = "Lato") +
+  theme(axis.text        = element_text(face = "bold"),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
+  theme(legend.position = "right") +
+  scale_color_brewer(palette = "Dark2") + 
+  scale_fill_brewer(palette  = "Dark2") 
+
+ggsave(filename = "output/S2_Fig_ipd_burden.png", 
+       plot = pop_burden_plot,
+       width = 8, height = 4, units = "in", dpi = 300)
+
+#================================================================
+
+# calculate and plot scaled incidence
+ipd_scaled <- ipd %>% 
+  dplyr::group_by(country, serogroup) %>% 
+  dplyr::mutate(p = incidence/sum(incidence))
+
+B <- 
+  ggplot(data = ipd_scaled) + 
+  geom_col(aes(x = agey, y = p),
+           color = NA) +
+  theme_bw(base_size = 14, base_family = 'Lato') +
+  labs(x = "Age (years)", y = "Scaled Incidence") +
+  scale_y_continuous(limits = c(0, NA), labels = ~sprintf("%g", .)) +
+  scale_x_continuous(breaks = seq(60, 90, 10), limits = c(NA, 90)) +
+  theme(axis.text        = element_text(face = "bold"),
+        legend.position  = "none", 
+        legend.text      = element_text(size=12), 
+        legend.title     = element_text(size = 16),
+        strip.background = element_rect(fill = "white"),
+        panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
+  facet_grid(country ~ serogroup) 
+
+# combined incidence plot
+ggsave("output/S3_Fig_scaled_incidence.png",
+       plot = B,
+       width = 10, height = 8, unit="in", dpi = 300)
 
 #================================================================
 

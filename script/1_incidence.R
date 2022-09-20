@@ -81,8 +81,6 @@ simulate_from_model <- function(x, newdata, nsim){
 # run the simulations
 nsims <- 1e3 # number of simulations to use for all uncertainty analysis
 ipd_x <- data.frame(agey = seq(55, 90, by = 1))
-# ipd_mc <- ipd_model %>% map(~simulate_from_model(.x, newdata = ipd_x, nsim = nsims))
-
 ipd_mc <- mutate(ipd_model, mc = map(.x = model, ~simulate_from_model(.x, ipd_x, nsims)))
 
 #-------------------------------------------------------
@@ -110,30 +108,3 @@ ipd_curves <-
 ipd_curves %<>% 
   mutate_at(.vars = vars(`2.5%`, `50%`, `97.5%`),
             .funs = ~pmax(0, .))
-
-# # plot fitted IPD incidence along with observed IPD cases with uncertainty
-# A <- 
-#   ggplot(data = ipd_curves) +
-#   geom_line(aes(x = agey, y = `50%`), size = 1) +
-#   geom_ribbon(aes(x = agey, y = `50%`,
-#                   ymin = `2.5%`, ymax = `97.5%`),
-#               alpha = 0.2, color = NA) +
-#   geom_point(data = ipd, aes(x = agey, y = obs), size = 2) +
-#   geom_linerange(data = ipd,
-#                  aes(x = agey, 
-#                      ymin = obs_lci, 
-#                      ymax = obs_uci)) +
-#   facet_grid(country  ~ serogroup, scales = "free_y") +
-#   scale_y_continuous(limits = c(0, NA), labels = ~sprintf("%g", .)) +
-#   labs(x = "Age (years)", 
-#        y = "IPD incidence per 100,000 population") +
-#   theme_bw(base_size = 14, base_family = "Lato") +
-#   theme(axis.text        = element_text(face = "bold"),
-#         strip.background = element_rect(fill = "white"),
-#         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
-# 
-# # combined incidence plot
-# ggsave("output/Fig2_ipd_incidence.png",
-#        plot = A,
-#        width = 10, height = 8, unit="in", dpi = 300)
-# 
