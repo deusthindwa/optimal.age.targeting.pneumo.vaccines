@@ -1,36 +1,47 @@
-# written by Deus Thindwa
+# written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# 1/08/2021-30/09/2021
+# 22/09/2022
 
 #===============================================================================
 
-# Calculation of the proportion of prevented cases relative to unvaccinated
-impact_total <- 
-  ipd_mc %>%
-  mutate(cases = map(.x = mc, .f = ~group_by(.x, sim) %>%
-                       crossing(Vac.age = seq(-55, 85, by = 5)) %>%
-                       filter(agey >= Vac.age) %>%
-                       group_by(Vac.age, sim) %>%
-                       summarise(cases = sum(fit)))) %>%
-  select(-data, -model, -mc) %>%
-  unnest(cases) %>%
-  inner_join(VE_impact_by_age) %>%
-  mutate(rel_impact = Impact/cases*100) %>%
-  group_by_at(.vars = vars(-c(sim, cases, Impact, rel_impact))) %>%
-  nest %>%
-  mutate(Q = map(.x = data, ~quantile(.x$rel_impact, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q)
+# Calculation of the proportion of prevented VT IPD of all IPD in 55+y
+impact_total <-
+VE_impact_by_age %>%
+  inner_join(filter(pop_cases, serogroup == "All") %>% 
+               select(country, Vac.age, cases)) %>%
+  dplyr::group_by(age_dep,
+                  country,
+                  Waning,
+                  sim) %>%
+  mutate(tot_cases = sum(cases),
+         reImpact = Impact/tot_cases*100) %>%
+select(sim, country, serogroup, age_dep, Waning, Vac.age, reImpact) %>%
+  nest(data = c(sim, reImpact)) %>%
+  mutate(Q = map(data, ~quantile(x     = .x$reImpact,
+                                 probs = c(0.025, 0.5, 0.975)))) %>%
+  unnest_wider(Q) %>%
+  select(-data)
 
 #===============================================================================
 
 # Calculation of the number of individuals needed to vaccinate to prevent a case
-impact_case <- dplyr::select(pop_country_df, country, agey, ntotal) %>% 
+efficiency <- 
+  dplyr::select(pop_country_df, country, agey, ntotal, N) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
-  mutate(Impact = ntotal/Impact) %>%
-  nest(data = c(sim, Impact)) %>%
-  mutate(Q = map(data, ~quantile(.x$Impact, probs = c(0.025, 0.5, 0.975)))) %>%
-  unnest_wider(Q)
+  dplyr::group_by(serogroup,
+                  Waning,
+                  age_dep,
+                  sim,
+                  Vac.age,
+                  country) %>%
+  summarise(eff = ntotal/Impact) %>%
+  ungroup() %>%
+  nest(data = c(sim, eff)) %>%
+  mutate(Q = map(data, ~quantile(x     = .x$eff,
+                                 probs = c(0.025, 0.5, 0.975)))) %>%
+  unnest_wider(Q) %>%
+  select(-data)
 
 #===============================================================================
 
@@ -62,7 +73,7 @@ readr::write_csv(x = Table_S1d, file = here("output", "Table_S1_scenario_pp23.cs
 # Comparing preventable cases between use of different vaccines (e.g., PCV20 vs PPV23) relative to unvaccinated.
 Table_S2 <-
   impact_total %>%
-  filter(Vac.age == 65 & Waning == "Fast waning" & age_dep == FALSE)
+  filter((Vac.age == 65 | Vac.age == 55) & Waning == "Fast waning" & age_dep == FALSE)
 readr::write_csv(x = Table_S2, file = here("output", "Table_S2_scenario.csv"))
 
 #===============================================================================
@@ -79,6 +90,6 @@ readr::write_csv(x = Table_S3, file = here("output", "Table_S3_scenario.csv"))
 # (Table S4) A scenario of PPV23 use under fast waning efficacy/effectiveness. 
 # Comparing number of individuals needed to vaccinate to prevent a case (e.g., in 55 vs 85 years old)
 Table_S4 <-
-impact_case %>%
+  efficiency %>%
   filter(serogroup == "PPV23" & Waning == "Fast waning" & age_dep == FALSE)
 readr::write_csv(x = Table_S4, file = here("output", "Table_S4_scenario.csv"))

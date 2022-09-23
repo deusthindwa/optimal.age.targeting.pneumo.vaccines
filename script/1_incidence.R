@@ -1,10 +1,10 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# 31/02/2022
+# 22/09/2022
 
 # back-inflation of IPD cases in England due to current PPV23 program based on Djennad et al.
 cov = 0.70 # vaccination coverage in England
-VEa = 0.41 # VE of 41% in 65-66y and 34% in 67-69y
+VEa = 0.41 # VE of 41% in 65-69y (though 41% in 65-66y and 34% in 67-69y)
 VEb = 0.23 # VE of 23% in 70+y 
 
 ipd <- readr::read_csv("data/total_incidence.csv") %>%
@@ -15,7 +15,6 @@ ipd <- readr::read_csv("data/total_incidence.csv") %>%
          encases = if_else(casesx != cases, casesx, NA_real_))
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
-#ipd <- readr::read_csv("data/total_incidence.csv") %>%
 scale = 100000
 ipd <- 
   ipd %>%
@@ -95,7 +94,6 @@ summarise_from_model <- function(x, probs = c(0.025, 0.5, 0.975)){
 }
 
 # summarise uncertainty
-
 ipd_curves <- 
   mutate(ipd_mc, curves = map(.x = mc, summarise_from_model)) %>%
   select(-data, -model, -mc) %>%
@@ -108,3 +106,4 @@ ipd_curves <-
 ipd_curves %<>% 
   mutate_at(.vars = vars(`2.5%`, `50%`, `97.5%`),
             .funs = ~pmax(0, .))
+

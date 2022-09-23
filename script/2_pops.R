@@ -1,8 +1,8 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# 31/02/2022
+# 22/09/2022
 
-#loaad datasets into memory
+#load datasets into memory
 pop_en <- read_csv("data/total_pop_en.csv")
 pop_mw <- read_csv("data/total_pop_mw.csv")
 pop_sa <- read_csv("data/total_pop_sa.csv")
@@ -51,5 +51,4 @@ if (pop_smooth){
 pop_cases <- dplyr::left_join(ipd_curves, pop_country_df, by = c("agey", "country")) %>% 
   dplyr::mutate(cases  = `50%`/scale*ntotal,
                 lcases = `2.5%`/scale*ntotal, 
-                ucases = `97.5%`/scale*ntotal, Vac.age = agey) %>% 
-  filter(serogroup != "All") 
+                ucases = `97.5%`/scale*ntotal, Vac.age = agey)

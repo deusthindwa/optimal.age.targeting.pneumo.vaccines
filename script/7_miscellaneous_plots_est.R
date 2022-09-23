@@ -1,6 +1,6 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# 1/08/2021-30/12/2021
+# 22/09/2022
 
 # load the IPD cases and estimate uncertainty of observed IPD cases
 yrcases <- readr::read_csv("data/yearly_cases.csv")
@@ -149,7 +149,6 @@ A <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) 
 
-
 B <-ipd %>% 
   #filter(serogroup != "All") %>%
   mutate(ageg = if_else(agegroup == "55-59", "55-",
@@ -167,7 +166,6 @@ B <-ipd %>%
   labs(x = "Age group (years)", y = "Number of IPD cases") +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text = element_text(face = "bold"),strip.background = element_rect(fill = "white"), panel.border = element_rect(colour = "black", fill = NA, size = 1)) 
-
 
 C <- 
   ggplot(data = ipd_curves) +

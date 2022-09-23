@@ -1,10 +1,8 @@
 # written by Samuel Clifford & Deus Thindwa
 # optimal age targeting for pneumoccocal vaccines against IPD in older adults
-# piecewise constant models of VE.
-# 1/08/2021-30/09/2021
+# 22/09/2022
 
 # vaccine efficacy from published papers
-
 dat <- list(
   `Andrews et al. (2012)` = 
     list(
@@ -41,7 +39,6 @@ dat <- list(
   
   `Patterson et al. (2016)` = 
     list(
-     #All   = list(`0-Inf` = c(52, 22, 77)),
       PCV13 = list(`0-Inf` = c(75, 41, 91))
     )
 )
@@ -56,11 +53,9 @@ dat_ <- lapply(X = dat,
   mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
   mutate(xmax = ifelse(is.na(xmax), 20, xmax))
 
-df <- dat_ %>% filter(Study != "Wright et al. (2013)") %>% rename(y = "Mean")
-
 # plot of VE and waning rate
 VE_plot <- 
-  df %>%
+  dat_ %>% filter(Study != "Wright et al. (2013)") %>% rename(y = "Mean") %>%
   mutate(xmax = if_else(Study == "Patterson et al. (2016)", 5, xmax)) %>%
   ggplot() +
   geom_segment(aes(x=xmin, xend = xmax, y = y, yend = y)) +
@@ -97,7 +92,7 @@ df_from_study <-
   arrange(Study, sim, t, fit)
 
 # simulated VE dataset with mean VE and 95%CI
-# used to check if reflect observed data
+# used to check if reflects observed data
 df_from_studyCk <- 
   df_from_study %>%
   nest(data = -c(Study, serogroup, t)) %>%
