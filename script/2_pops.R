@@ -54,36 +54,15 @@ pop_cases <- dplyr::left_join(ipd_curves, pop_country_df, by = c("agey", "countr
                 ucases = `97.5%`/scale*ntotal, 
                 Vac.age = agey)
 
-#Deus attempt
+#get full incidence uncertainty dataset
 ipd_mc2 <- 
-  rbind( 
-    ipd_mc[[5]][[1]] %>% mutate(country = "Brazil", serogroup = "PCV13"),
-    ipd_mc[[5]][[2]] %>% mutate(country = "Brazil", serogroup = "PCV15"),
-    ipd_mc[[5]][[3]] %>% mutate(country = "Brazil", serogroup = "PCV20"),
-    ipd_mc[[5]][[4]] %>% mutate(country = "Brazil", serogroup = "PPV23"),
-    ipd_mc[[5]][[5]] %>% mutate(country = "Brazil", serogroup = "All"),
+  unnest(ipd_mc, mc) %>%
+  select(serogroup, country, agey, sim, fit) %>%
+  arrange(serogroup, country, agey, sim) %>%
+  filter(agey <= 85 & serogroup != "All")
 
-    ipd_mc[[5]][[6]] %>% mutate(country = "South Africa", serogroup = "PCV13"),
-    ipd_mc[[5]][[7]] %>% mutate(country = "South Africa", serogroup = "PCV15"),
-    ipd_mc[[5]][[8]] %>% mutate(country = "South Africa", serogroup = "PCV20"),
-    ipd_mc[[5]][[9]] %>% mutate(country = "South Africa", serogroup = "PPV23"),
-    ipd_mc[[5]][[10]] %>% mutate(country = "South Africa", serogroup = "All"),
-
-    ipd_mc[[5]][[11]] %>% mutate(country = "Malawi", serogroup = "PCV13"),
-    ipd_mc[[5]][[12]] %>% mutate(country = "Malawi", serogroup = "PCV15"),
-    ipd_mc[[5]][[13]] %>% mutate(country = "Malawi", serogroup = "PCV20"),
-    ipd_mc[[5]][[14]] %>% mutate(country = "Malawi", serogroup = "PPV23"),
-    ipd_mc[[5]][[15]] %>% mutate(country = "Malawi", serogroup = "All"),
-
-    ipd_mc[[5]][[16]] %>% mutate(country = "England", serogroup = "PCV13"),
-    ipd_mc[[5]][[17]] %>% mutate(country = "England", serogroup = "PCV15"),
-    ipd_mc[[5]][[18]] %>% mutate(country = "England", serogroup = "PCV20"),
-    ipd_mc[[5]][[19]] %>% mutate(country = "England", serogroup = "PPV23"),
-    ipd_mc[[5]][[20]] %>% mutate(country = "England", serogroup = "All")
-  )
-
+#compute full case uncertainty dataset
 pop_cases2 <- 
   dplyr::left_join(ipd_mc2, pop_country_df, by = c("agey", "country")) %>% 
-  dplyr::mutate(cases  = fit/scale*ntotal, Vac.age = agey)
-
-
+  dplyr::mutate(cases  = fit/scale*ntotal) %>%
+  rename("age" = "agey")

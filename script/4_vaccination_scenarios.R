@@ -88,11 +88,7 @@ VE_by_Vac.age <-
 # combine estimated VE and popn cases and demography (based on fitted incidence and smooth population)
 VE_by_Vac.age <-
   VE_by_Vac.age %>%
-  left_join(
-    pop_cases2 %>%
-      rename("age" = "agey") %>%
-      select(sim, serogroup, age, country, cases)
-  ) %>%
+  inner_join(pop_cases2 %>% select(serogroup, age, sim, country, cases)) %>%
   dplyr::mutate(Impact = VE*cases)
 
 
