@@ -106,4 +106,3 @@ ipd_curves <-
 ipd_curves %<>% 
   mutate_at(.vars = vars(`2.5%`, `50%`, `97.5%`),
             .funs = ~pmax(0, .))
-

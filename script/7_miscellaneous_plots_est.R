@@ -123,12 +123,23 @@ cbind (
 
 #================================================================
 
-# proportion of serotypes targeted by vaccines by country
-ipd %>% 
-  #filter(serogroup != "All") %>%
+# proportion of serotypes targeted by vaccines by country equally weighted
+left_join(
+  ipd %>% 
+  filter(serogroup != "All") %>%
+  group_by(country, serogroup) %>%
+  tally(cases),
+  
+  ipd %>% 
+  filter(serogroup == "All") %>%
   group_by(country, serogroup) %>%
   tally(cases) %>%
-  mutate(p = n/sum(n))
+  rename("N" = "n") %>%
+  select(country, N)) %>%
+  
+  mutate(prop = n/N) %>%
+  group_by(serogroup) %>%
+  mutate(AvgProp = sum(prop)/4)
 
 #================================================================
 
@@ -196,7 +207,7 @@ ggsave("output/Fig1_pop_cases_incid.png",
 
 # incidence rate ratios between 55y and 85y
 IncidR <- 
-  
+
 cbind(  
   left_join(
     ipd_curves %>% 

@@ -89,11 +89,12 @@ VE_by_Vac.age <-
 VE_by_Vac.age <-
   VE_by_Vac.age %>%
   left_join(
-    pop_cases %>%
+    pop_cases2 %>%
       rename("age" = "agey") %>%
-      select(serogroup, age, country, cases)
+      select(sim, serogroup, age, country, cases)
   ) %>%
   dplyr::mutate(Impact = VE*cases)
+
 
 # plot waning VE against time since vaccination
 VE_time <- 
