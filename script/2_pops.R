@@ -59,7 +59,8 @@ ipd_mc2 <-
   unnest(ipd_mc, mc) %>%
   select(serogroup, country, agey, sim, fit) %>%
   arrange(serogroup, country, agey, sim) %>%
-  filter(agey <= 85 & serogroup != "All")
+  filter(serogroup != "All")
+#agey <= 85 & 
 
 #compute full case uncertainty dataset
 pop_cases2 <- 

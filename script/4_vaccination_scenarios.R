@@ -46,7 +46,7 @@ initial_VE <- function(age, serogroup, age_dep = FALSE){
                                   TRUE                   ~ NA_character_)) %>%
 
 crossing(Vac.age = seq(55, 85, by = 5),
-         age     = seq(55, 85, by = 1)) %>%
+         age     = seq(55, 90, by = 1)) %>%
   mutate(t     = age - Vac.age) %>%
   mutate(scale_initial = initial_VE(Vac.age, serogroup, age_dep),
          scale_initial = ifelse(t < 0, 0, scale_initial))
