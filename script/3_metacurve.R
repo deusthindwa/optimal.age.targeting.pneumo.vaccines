@@ -51,7 +51,7 @@ dat_ <- lapply(X = dat,
   map_df(~bind_rows(.x, .id = "serogroup"), .id = "Study") %>%
   separate(Ages, into = c("xmin", "xmax")) %>%
   mutate_at(.vars = vars(xmin, xmax), .funs = parse_number) %>%
-  mutate(xmax = ifelse(is.na(xmax), 20, xmax))
+  mutate(xmax = ifelse(is.na(xmax), 30, xmax))
 
 # plot of VE and waning rate
 VE_plot <- 

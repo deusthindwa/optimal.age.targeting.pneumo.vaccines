@@ -85,13 +85,6 @@ VE_by_Vac.age <-
   
   mutate(VE = fit/100 * scale_initial)
 
-# combine estimated VE and popn cases and demography (based on fitted incidence and smooth population)
-VE_by_Vac.age <-
-  VE_by_Vac.age %>%
-  inner_join(pop_cases2 %>% select(serogroup, age, sim, country, cases)) %>%
-  dplyr::mutate(Impact = VE*cases)
-
-
 # plot waning VE against time since vaccination
 VE_time <- 
   VE_by_Vac.age %>%
@@ -99,8 +92,9 @@ VE_time <-
   mutate(Study.waning = if_else(Study.waning == "Andrews et al. (2012)", "Fast waning", "Slow waning"),
          serogroup = if_else(serogroup == "PCV13", "PCVs", "PPV23")) %>%
   filter(Vac.age %in% c(55, 65, 75)) %>%
+  filter(!is.na(VE)) %>%
   select(-scale_initial, -fit) %>%
-  nest(data = c(sim, VE, Impact)) %>%
+  nest(data = c(sim, VE)) %>%
   mutate(Q = map(data, ~quantile(.x$VE, probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
   
@@ -117,9 +111,17 @@ VE_time <-
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
         panel.border     = element_rect(colour = "black", fill=NA, size=1)) +
-  scale_x_continuous(limit = c(0, 10), breaks = ~pretty.default(., n=3)) +
+  #scale_x_continuous(limit = c(0, 30), breaks = ~pretty.default(., n=3)) +
   theme(legend.position = 'bottom', panel.grid.minor = element_blank()) 
 
 ggsave(filename = "output/S5_Fig_vaccine_efficacy_time.png", 
        plot = VE_time,
-       width = 9, height = 8, units = "in", dpi = 300)
+       width = 11, height = 7, units = "in", dpi = 300)
+
+
+# combine estimated VE and popn cases and demography (based on fitted incidence and smooth population)
+VE_by_Vac.ageX <-
+  VE_by_Vac.age %>%
+  inner_join(pop_cases2 %>% 
+               select(serogroup, sim, Vac.age, country, cases)) %>%
+  dplyr::mutate(Impact = VE*cases)

@@ -76,7 +76,7 @@ o <- function(r){
 #===============================================================================================
 
 # sum up Impact by vaccination age
-VE_impact_by_age <- VE_by_Vac.age %>%
+VE_impact_by_age <- VE_by_Vac.ageX %>%
   dplyr::group_by(serogroup,
                   Study.waning,
                   age_dep,

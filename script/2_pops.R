@@ -64,5 +64,5 @@ ipd_mc2 <-
 #compute full case uncertainty dataset
 pop_cases2 <- 
   dplyr::left_join(ipd_mc2, pop_country_df, by = c("agey", "country")) %>% 
-  dplyr::mutate(cases  = fit/scale*ntotal) %>%
+  dplyr::mutate(cases  = fit/scale*ntotal, Vac.age = agey) %>%
   rename("age" = "agey")
