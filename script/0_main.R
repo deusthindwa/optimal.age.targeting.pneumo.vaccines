@@ -13,6 +13,7 @@ pacman::p_load(char = c("tidyverse", "here","readstata13",
                         "zoo", "patchwork", "mgcv", "PropCIs", "showtext", "ggh4x", "splitstackshape"))
 
 options(stringsAsFactors = FALSE)
+set.seed = 1988
 
 # model incidences in each age group using (main)
 source("script/1_incidence.R")

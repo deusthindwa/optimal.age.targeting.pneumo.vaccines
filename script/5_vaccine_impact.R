@@ -130,7 +130,7 @@ ggsave(filename = "output/S6_Fig_vaccine_impact_cohort_age_dep.png",
 #===============================================================================================
 
 # Number of individuals needed to vaccine to prevent a single case (age-independent)
-VE_impact_validated_ageI_ <- 
+Vac_efficiency_ageI <- 
   dplyr::select(pop_country_df, country, agey, ntotal, N) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
@@ -140,17 +140,17 @@ VE_impact_validated_ageI_ <-
                   sim,
                   Vac.age,
                   country) %>%
-  summarise(eff = N/Impact) %>%
+  summarise(eff = ntotal/Impact) %>%
   ungroup() %>%
   nest(data = c(sim, eff)) %>%
   mutate(Q = map(data, ~quantile(x     = .x$eff,
                                  probs = c(0.025, 0.5, 0.975)))) %>%
   unnest_wider(Q) %>%
   select(-data) %>%
-  filter(age_dep == TRUE)
+  filter(age_dep == FALSE)
 
 # plot vaccination efficiency Number of adults needed to vaccinate in each age cohort to prevent a case
-VE_B1 <- make_grid_plot(x = VE_impact_validated_ageI_, ylab = "Efficiency (Minimum number to vaccinate to prevent a case)") +
+VE_B1 <- make_grid_plot(x = Vac_efficiency_ageI, ylab = "Efficiency (Number needed to vaccinate to prevent a case)") +
   geom_point(data = o, aes(x = Vac.age, y = Impactmin), shape = 4, stroke = 1, size = 1)
 
 ggsave(filename = "output/Fig3_vaccination_efficiency_indep.png", 
@@ -159,7 +159,7 @@ ggsave(filename = "output/Fig3_vaccination_efficiency_indep.png",
 
 
 # Number of individuals needed to vaccine to prevent a single case (age-dependent)
-VE_impact_validated_ageD_ <- 
+Vac_efficiency_ageD <- 
   dplyr::select(pop_country_df, country, agey, ntotal, N) %>% 
   dplyr::rename(Vac.age = agey) %>% 
   dplyr::inner_join(VE_impact_by_age, by = c("country", "Vac.age")) %>%
@@ -179,7 +179,7 @@ VE_impact_validated_ageD_ <-
   filter(age_dep == TRUE)
 
 # impact per 100,000 older adults vaccinated in specific age cohort (ntotal)
-VE_B2 <- make_grid_plot(x = VE_impact_validated_ageD_, ylab = "Efficiency (Minimum number to vaccinate to prevent a case)") +
+VE_B2 <- make_grid_plot(x = Vac_efficiency_ageD, ylab = "Efficiency (Number needed to vaccinate to prevent a case)") +
   geom_point(data = o, aes(x = Vac.age, y = Impactmin), shape = 4, stroke = 1, size = 1)
 
 ggsave(filename = "output/S7_Fig_vaccination_efficiency_dep.png", 
