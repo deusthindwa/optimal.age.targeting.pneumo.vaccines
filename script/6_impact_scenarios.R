@@ -70,7 +70,7 @@ readr::write_csv(x = Table_S1, file = here("output", "Table_S1_scenario.csv"))
 # Comparing preventable cases between use of different vaccines (e.g., PCV20 vs PPV23) relative to unvaccinated.
 Table_S2 <-
   impact_total %>%
-  filter((Vac.age == 65 | Vac.age == 55) & Waning == "Fast waning" & age_dep == FALSE)
+  filter((Vac.age == 70 | Vac.age == 55) & Waning == "Fast waning" & age_dep == FALSE)
 readr::write_csv(x = Table_S2, file = here("output", "Table_S2_scenario.csv"))
 
 #===============================================================================
@@ -79,7 +79,7 @@ readr::write_csv(x = Table_S2, file = here("output", "Table_S2_scenario.csv"))
 # Comparing preventable cases between fast and slow waning efficacy/effectiveness relative to unvaccinated.
 Table_S3 <-
   impact_total %>%
-  filter(Vac.age == 65 & age_dep == FALSE)
+  filter((Vac.age == 70 | Vac.age == 55) & (serogroup == "PPV23" | serogroup == "PCV20") & age_dep == FALSE)
 readr::write_csv(x = Table_S3, file = here("output", "Table_S3_scenario.csv"))
 
 #===============================================================================
