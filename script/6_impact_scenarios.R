@@ -75,7 +75,7 @@ readr::write_csv(x = Table_S2, file = here("output", "Table_S2_scenario.csv"))
 
 #===============================================================================
 
-# (Table S3) A scenario of PPV23 use in 65 years old cohort. 
+# (Table S3) A scenario of PPV23 use in 55 vs 70 years old cohort. 
 # Comparing preventable cases between fast and slow waning efficacy/effectiveness relative to unvaccinated.
 Table_S3 <-
   impact_total %>%

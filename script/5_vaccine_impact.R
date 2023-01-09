@@ -107,6 +107,25 @@ ggsave(filename = "output/Fig2_vaccine_impact_cohort_age_indep.png",
        plot = VE_A1,
        width = 14, height = 8, units = "in", dpi = 300)
 
+# add uncertainty to summed up Impact (age-independent with 70% vaccine coverage)
+VE_impact_by_ageI70_ <- 
+  VE_impact_by_age %>%
+  filter(!is.na(Impact)) %>%
+  mutate(Impact = Impact*0.70) %>%
+  nest(data = c(sim, Impact)) %>%
+  mutate(Q = map(data, ~quantile(x     = .x$Impact,
+                                 probs = c(0.025, 0.5, 0.975)))) %>%
+  unnest_wider(Q) %>%
+  select(-data) %>%
+  filter(age_dep == FALSE)
+
+# plot age-independent vaccine impact (expected total number of cases averted with 70% vaccine coverage)
+VE_A1_1 <- make_grid_plot(x = VE_impact_by_ageI70_, ylab = "Vaccine impact (expected total cases averted)") +
+  geom_point(data = q, aes(x = Vac.age, y = Impactmax), shape = 4, stroke = 1, size = 1)
+
+ggsave(filename = "output/S8_Fig_vaccine_impact_cohort_age_indep_0.7.png", 
+       plot = VE_A1_1,
+       width = 14, height = 8, units = "in", dpi = 300)
 
 # add uncertainty to summed up Impact (age-dependent)
 VE_impact_by_ageD_ <- 
