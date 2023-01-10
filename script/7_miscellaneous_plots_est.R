@@ -153,7 +153,8 @@ A <- ggplot(data = pop_country_df, aes(x = agey, y = p)) +
   labs(x = "Age (years)", 
        y = paste0("Share of ",
                   ifelse(pop_use_totals, "total national", "55y+"),
-                  " population")) +
+                  " population"),
+       title = "(a)") +
   facet_grid(country ~ .) +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
@@ -174,7 +175,7 @@ B <-ipd %>%
   facet_grid(country  ~ serogroup, scales = "free_y") +
   scale_x_discrete(breaks = c("60-", "70-", "80-")) +
   scale_y_continuous(limits = c(0, NA)) +
-  labs(x = "Age group (years)", y = "Number of IPD cases") +
+  labs(x = "Age group (years)", y = "Number of IPD cases", title = "(b)") +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text = element_text(face = "bold"),strip.background = element_rect(fill = "white"), panel.border = element_rect(colour = "black", fill = NA, size = 1)) 
 
@@ -193,7 +194,8 @@ C <-
   facet_grid(country  ~ serogroup, scales = "free_y") +
   scale_y_continuous(limits = c(0, NA), labels = ~sprintf("%g", .)) +
   labs(x = "Age (years)", 
-       y = "IPD incidence per 100,000 population") +
+       y = "IPD incidence per 100,000 population",
+       title = "(c)") +
   theme_bw(base_size = 14, base_family = "Lato") +
   theme(axis.text        = element_text(face = "bold"),
         strip.background = element_rect(fill = "white"),
